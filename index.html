@@ -1277,9 +1277,9 @@
 
     <!-- Firebase Realtime Sync Script -->
 <!-- Firebase Realtime Sync Script -->
+<!-- Firebase Realtime Sync Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // IDE MÁSOLD BE A SAJÁT FIREBASE CONFIGURÁCIÓDAT:
@@ -1295,57 +1295,56 @@
 
         try {
             const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
             const db = getFirestore(app);
+            const sharedDocRef = doc(db, 'etrend_adatok', 'csaladi_etrend');
 
-            const userCredential = await signInAnonymously(auth);
-            const user = userCredential.user;
+            // Élő szinkronizáció figyelése
+            onSnapshot(sharedDocRef, (docSnap) => {
+                // Ha van adat a felhőben, betöltjük
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.meals) meals = data.meals;
+                    if (data.planner) planner = data.planner;
+                    if (data.archives) archives = data.archives;
+                    
+                    localStorage.setItem('fitplan_meals', JSON.stringify(meals));
+                    localStorage.setItem('fitplan_planner', JSON.stringify(planner));
+                    localStorage.setItem('fitplan_archives', JSON.stringify(archives));
 
-            if (user) {
-                const sharedDocRef = doc(db, 'etrend_adatok', 'csaladi_etrend');
-                
-                // Felhőből érkező adatok beolvasása élőben
-                onSnapshot(sharedDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data.meals) meals = data.meals;
-                        if (data.planner) planner = data.planner;
-                        if (data.archives) archives = data.archives;
-                        
-                        localStorage.setItem('fitplan_meals', JSON.stringify(meals));
-                        localStorage.setItem('fitplan_planner', JSON.stringify(planner));
-                        localStorage.setItem('fitplan_archives', JSON.stringify(archives));
+                    renderPlanner();
+                    renderLibrary();
+                    updateArchiveBadge();
+                }
 
-                        renderPlanner();
-                        renderLibrary();
-                        updateArchiveBadge();
+                // Sikeres csatlakozáskor AZONNAL ÁTVÁLTJUK A ZÖLD JELZŐT
+                const syncText = document.getElementById('sync-text');
+                const syncStatus = document.getElementById('sync-status');
+                if (syncText && syncStatus) {
+                    syncText.textContent = 'Családi Szinkron Aktív';
+                    syncStatus.className = 'px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-400 text-[11px] font-medium flex items-center gap-1.5 border border-emerald-800/60';
+                    const dot = syncStatus.querySelector('span');
+                    if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                }
+            }, (err) => {
+                console.error("Firestore kapcsolódási hiba:", err);
+                const syncText = document.getElementById('sync-text');
+                if (syncText) syncText.textContent = 'Szinkron Hiba';
+            });
 
-                        const syncText = document.getElementById('sync-text');
-                        const syncStatus = document.getElementById('sync-status');
-                        if (syncText && syncStatus) {
-                            syncText.textContent = 'Családi Szinkron Aktív';
-                            syncStatus.className = 'px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-400 text-[11px] font-medium flex items-center gap-1.5 border border-emerald-800/60';
-                            syncStatus.querySelector('span').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-                        }
-                    }
-                }, (err) => {
-                    console.warn("Cloud sync error:", err);
-                });
+            // Adatok felhőbe mentése minden módosításkor
+            const originalSaveData = window.saveData;
+            window.saveData = function() {
+                if (typeof originalSaveData === 'function') originalSaveData();
+                setDoc(sharedDocRef, {
+                    meals: meals,
+                    planner: planner,
+                    archives: archives,
+                    updatedAt: Date.now()
+                }, { merge: true }).catch(e => console.error("Mentési hiba:", e));
+            };
 
-                // Adatok mentése a felhőbe
-                const originalSaveData = window.saveData;
-                window.saveData = function() {
-                    if (typeof originalSaveData === 'function') originalSaveData();
-                    setDoc(sharedDocRef, {
-                        meals: meals,
-                        planner: planner,
-                        archives: archives,
-                        updatedAt: Date.now()
-                    }, { merge: true }).catch(e => console.error("Sync error:", e));
-                };
-            }
         } catch (err) {
-            console.log("Local offline mode active:", err);
+            console.error("Firebase init hiba:", err);
         }
     </script>
 </body>
