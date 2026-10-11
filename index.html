@@ -2896,6 +2896,8 @@
 
     <!-- FIREBASE AUTH & REALTIME SYNC (GOOGLE AUTH + EMAIL/PASSWORD AUTH) -->
     <script type="module">
+<!-- FIREBASE AUTH & REALTIME SYNC (ZSOMBOR EGYSZERI ADATHOZZÁRENDELÉSSEL) -->
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, 
@@ -2908,7 +2910,7 @@
             onAuthStateChanged,
             updateProfile
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ==============================================================
         // ⚠️ IDE MÁSOLD BE A SAJÁT FIREBASE CONFIG ADATAIDAT:
@@ -2932,7 +2934,6 @@ const firebaseConfig = {
 
                 let activeUnsubscribe = null;
 
-                // Magyar hibaüzenet fordító
                 function translateAuthError(code) {
                     switch(code) {
                         case 'auth/invalid-credential':
@@ -3037,8 +3038,8 @@ const firebaseConfig = {
                     });
                 };
 
-                // AUTH ÁLLAPOT VÁLTOZÁSA (LOGIN <-> LOGOUT FIGYELŐ)
-                onAuthStateChanged(auth, (user) => {
+                // AUTH FIGYELŐ & KIFEJEZETTEN A TE EMAIL CÍMEDHEZ KÖTÖTT EGYSZERI ÁTHOZATAL
+                onAuthStateChanged(auth, async (user) => {
                     const authScreen = document.getElementById('auth-screen');
                     const syncText = document.getElementById('sync-text');
                     const syncStatus = document.getElementById('sync-status');
@@ -3047,7 +3048,6 @@ const firebaseConfig = {
                         window.currentFirebaseUser = user;
                         if (authScreen) authScreen.classList.add('hidden');
 
-                        // Profil fejléc azonnali kitöltése a Google/Email adatokkal
                         const activeName = document.getElementById('active-profile-name');
                         const activeImg = document.getElementById('active-profile-img');
                         const activeIcon = document.getElementById('active-profile-icon');
@@ -3061,11 +3061,55 @@ const firebaseConfig = {
                             activeIcon.classList.add('hidden');
                         }
 
-                        // Saját, privát dokumentum csatolása a felhőben
                         const userDocRef = doc(db, 'felhasznalok', user.uid);
+
+                        // ==============================================================
+                        // 🌟 EGYSZERI ÁTHOZATAL: marenecdozsazsombor7@gmail.com
+                        // ==============================================================
+                        const targetEmail = 'marenecdozsazsombor7@gmail.com';
+                        const isTargetUser = user.email && (user.email.toLowerCase() === targetEmail.toLowerCase());
+
+                        try {
+                            const userCheckSnap = await getDoc(userDocRef);
+                            const userData = userCheckSnap.exists() ? userCheckSnap.data() : null;
+
+                            // Ha te lépsz be ezzel az e-maillel, és még nem kapta meg az adataidat:
+                            if (isTargetUser && (!userData || !userData.migratedForZsombor)) {
+                                const legacyDocRef = doc(db, 'etrend_adatok', 'csaladi_etrend');
+                                const legacySnap = await getDoc(legacyDocRef);
+                                
+                                let initialPayload = null;
+                                if (legacySnap.exists() && legacySnap.data().payload) {
+                                    initialPayload = legacySnap.data().payload;
+                                } else if (legacySnap.exists() && legacySnap.data().profiles) {
+                                    initialPayload = JSON.stringify({
+                                        profiles: legacySnap.data().profiles,
+                                        profileData: legacySnap.data().profileData
+                                    });
+                                } else {
+                                    // Ha a felhőben nem találja, a jelenlegi böngésződben meglévő ételeket veszi át:
+                                    initialPayload = JSON.stringify({
+                                        profiles: window.profiles,
+                                        profileData: window.profileData
+                                    });
+                                }
+
+                                await setDoc(userDocRef, {
+                                    payload: initialPayload,
+                                    email: user.email,
+                                    migratedForZsombor: true,
+                                    updatedAt: Date.now()
+                                }, { merge: true });
+
+                                showToast('Szia Zsombor! A korábbi ételeid sikeresen hozzárendelve a fiókodhoz!', 'fa-wand-magic-sparkles', 'brand');
+                            }
+                        } catch (migrationErr) {
+                            console.warn("Egyszeri áthozatali figyelmeztetés:", migrationErr);
+                        }
 
                         if (activeUnsubscribe) activeUnsubscribe();
 
+                        // A belépett felhasználó saját fiókjának (zsebének) figyelése
                         activeUnsubscribe = onSnapshot(userDocRef, (docSnap) => {
                             if (docSnap.exists()) {
                                 const data = docSnap.data();
@@ -3123,7 +3167,7 @@ const firebaseConfig = {
                                     }
                                 }
                             } else {
-                                // Első belépés: kezdő adatok felküldése a fiókhoz
+                                // Teljesen új, üres fiók esetén saját tiszta kezdőadat mentése
                                 window.syncToFirebase();
                             }
 
@@ -3137,7 +3181,7 @@ const firebaseConfig = {
                             console.warn("Firestore figyelmeztetés:", err);
                         });
 
-                        // Felhő szinkronizáló függvény a belépett felhasználóhoz kötve
+                        // Mentés mindig a bejelentkezett felhasználó saját privát zsebébe
                         window.syncToFirebase = function() {
                             try {
                                 const payload = JSON.stringify({
@@ -3157,7 +3201,6 @@ const firebaseConfig = {
                         };
 
                     } else {
-                        // Kijelentkezett állapot: Belépő ablak megjelenítése
                         window.currentFirebaseUser = null;
                         if (authScreen) authScreen.classList.remove('hidden');
                         if (syncText && syncStatus) {
