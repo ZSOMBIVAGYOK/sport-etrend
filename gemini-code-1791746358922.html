@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="hu" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPlan Pro - Étrend, Edzés, Recovery & Egészség</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4', 100: '#dcfce7', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d',
+                        },
+                        bluebrand: {
+                            50: '#eff6ff', 100: '#dbeafe', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a',
+                        },
+                        redbrand: {
+                            50: '#fef2f2', 100: '#fee2e2', 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 900: '#7f1d1d',
+                        },
+                        purplebrand: {
+                            50: '#faf5ff', 100: '#f3e8ff', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce', 900: '#581c87',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px; width: 20px;
+            border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -8px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white pb-12">
+
+    <!-- ========================================== -->
+    <!-- AUTHENTICATION FULL-SCREEN OVERLAY / SCREEN -->
+    <!-- ========================================== -->
+    <div id="auth-screen" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-brand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-bluebrand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-redbrand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-purplebrand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden my-auto">
+            <div class="h-2 w-full bg-gradient-to-r from-emerald-500 via-blue-500 via-purple-500 to-rose-500"></div>
+
+            <div class="p-6 sm:p-8">
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-bluebrand-600 to-purplebrand-600 shadow-xl shadow-brand-500/20 mb-3 text-white text-2xl font-black">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-white tracking-tight">FitPlan Pro</h2>
+                    <p class="text-xs text-slate-400 mt-1" data-i18n="appSubtitle">Sportolói Étrend, Edzés, Recovery & Egészség</p>
+
+                    <div class="flex flex-wrap items-center justify-center gap-1.5 mt-3">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-950 border border-brand-800/60 text-brand-400" data-i18n="menuDiet">Étrend</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-bluebrand-950 border border-bluebrand-800/60 text-bluebrand-400" data-i18n="menuWorkout">Edzés</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purplebrand-950 border border-purplebrand-800/60 text-purplebrand-400" data-i18n="menuRecovery">Recovery</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-redbrand-950 border border-redbrand-800/60 text-redbrand-400" data-i18n="menuDocs">Egészség</span>
+                    </div>
+                </div>
+
+                <button onclick="handleGoogleSignIn()" type="button" class="w-full py-3 px-4 bg-white hover:bg-slate-100 text-slate-900 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-3 shadow-lg transition duration-200 cursor-pointer active:scale-[0.98]">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.97 0 12s.45 3.84 1.24 5.42l4.04-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span data-i18n="googleLogin">Folytatás Google-fiókkal</span>
+                </button>
+
+                <div class="relative my-5 flex items-center justify-center">
+                    <div class="border-t border-slate-800 w-full"></div>
+                    <span class="bg-slate-900 px-3 text-[11px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="orEmail">vagy e-mail címmel</span>
+                </div>
+
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 mb-4">
+                    <button id="auth-tab-login" onclick="setAuthMode('login')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow" data-i18n="loginTab">
+                        Bejelentkezés
+                    </button>
+                    <button id="auth-tab-register" onclick="setAuthMode('register')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white" data-i18n="registerTab">
+                        Új Regisztráció
+                    </button>
+                </div>
+
+                <div id="auth-error-banner" class="hidden mb-4 p-2.5 rounded-xl bg-redbrand-950/80 border border-redbrand-800 text-redbrand-300 text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
+                    <span id="auth-error-text"></span>
+                </div>
+
+                <form onsubmit="handleEmailAuth(event)" class="space-y-3 text-xs">
+                    <div id="auth-name-group" class="hidden">
+                        <label class="block text-slate-300 font-semibold mb-1" data-i18n="nameLabel">Neved / Beceneved</label>
+                        <input type="text" id="auth-name" placeholder="pl. Zsombor" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1" data-i18n="emailLabel">E-mail Cím</label>
+                        <input type="email" id="auth-email" required placeholder="pelda@email.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-slate-300 font-semibold" data-i18n="passwordLabel">Jelszó</label>
+                            <button type="button" id="auth-forgot-btn" onclick="handlePasswordReset()" class="text-[11px] text-brand-400 hover:underline" data-i18n="forgotPassword">Elfelejtetted?</button>
+                        </div>
+                        <input type="password" id="auth-password" required placeholder="Legalább 6 karakter" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div id="auth-confirm-group" class="hidden">
+                        <label class="block text-slate-300 font-semibold mb-1" data-i18n="passwordConfirmLabel">Jelszó Megerősítése</label>
+                        <input type="password" id="auth-password-confirm" placeholder="Írd be újra a jelszavad" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-gradient-to-r from-brand-600 via-bluebrand-600 to-purplebrand-600 hover:opacity-95 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-brand-500/20 transition cursor-pointer mt-2" data-i18n="loginBtn">
+                        Bejelentkezés
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 transition-colors duration-300" id="main-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+            
+            <!-- App Selector Dropdown -->
+            <div class="relative">
+                <button onclick="toggleAppMenu()" class="flex items-center gap-3 hover:bg-slate-800/50 p-1.5 pr-3 rounded-2xl transition cursor-pointer group">
+                    <div id="app-logo-bg" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-brand-500/20 transition-all duration-300">
+                        <i id="app-logo-icon" class="fa-solid fa-utensils"></i>
+                    </div>
+                    <div class="hidden sm:block text-left">
+                        <h1 id="app-title" class="font-bold text-lg leading-tight tracking-tight text-white transition-colors">FitPlan Pro</h1>
+                        <p id="app-subtitle" class="text-xs text-brand-400 font-medium transition-colors" data-i18n="dietSubtitle">Sportolói Étrend</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-slate-500 text-xs ml-1 group-hover:text-white transition"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div id="app-selector-dropdown" class="absolute top-full left-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl hidden flex-col overflow-hidden z-50">
+                    <button onclick="switchAppMode('diet')" class="flex items-center gap-3 p-3 hover:bg-slate-800 transition text-left">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-slate-950 text-sm"><i class="fa-solid fa-utensils"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-white" data-i18n="menuDiet">FitPlan Étrend</div>
+                            <div class="text-[10px] text-slate-400">Tervező és receptek</div>
+                        </div>
+                    </button>
+                    <div class="h-px w-full bg-slate-800"></div>
+                    <button onclick="switchAppMode('workout')" class="flex items-center gap-3 p-3 hover:bg-slate-800 transition text-left">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-slate-950 text-sm"><i class="fa-solid fa-person-running"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-white" data-i18n="menuWorkout">Edzésnapló</div>
+                            <div class="text-[10px] text-slate-400">Teljesítmény követése</div>
+                        </div>
+                    </button>
+                    <div class="h-px w-full bg-slate-800"></div>
+                    <button onclick="switchAppMode('docs')" class="flex items-center gap-3 p-3 hover:bg-slate-800 transition text-left">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-redbrand-600 to-rose-400 flex items-center justify-center text-white text-sm"><i class="fa-solid fa-file-lines"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-white" data-i18n="menuDocs">Dokumentumok</div>
+                            <div class="text-[10px] text-redbrand-400">Vérvétel, InBody, tervek</div>
+                        </div>
+                    </button>
+                    <div class="h-px w-full bg-slate-800"></div>
+                    <button onclick="switchAppMode('recovery')" class="flex items-center gap-3 p-3 hover:bg-slate-800 transition text-left">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purplebrand-600 to-fuchsia-400 flex items-center justify-center text-white text-sm"><i class="fa-solid fa-heart-pulse"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-white" data-i18n="menuRecovery">Recovery</div>
+                            <div class="text-[10px] text-purplebrand-400">Alvás & Regeneráció</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <nav id="diet-nav" class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 transition-all">
+                <button id="tab-planner-btn" onclick="switchTab('planner')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-brand-600 text-white shadow-md">
+                    <i class="fa-regular fa-calendar-days sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="tabPlanner">Heti Naptár</span>
+                </button>
+                <button id="tab-library-btn" onclick="switchTab('library')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all duration-200">
+                    <i class="fa-solid fa-book-open sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="tabLibrary">Ételkönyvtár</span>
+                </button>
+                <button id="tab-archive-btn" onclick="switchTab('archive')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all duration-200 relative">
+                    <i class="fa-solid fa-box-archive sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="tabArchive">Archívum</span>
+                    <span id="archive-count-badge" class="ml-1 px-1.5 py-0.2 bg-slate-800 text-[10px] text-brand-400 rounded-full font-bold">0</span>
+                </button>
+            </nav>
+
+            <nav id="workout-nav" class="hidden flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-bluebrand-900/50 transition-all">
+                <button id="w-tab-planner-btn" onclick="switchWorkoutTab('planner')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-bluebrand-600 text-white shadow-md">
+                    <i class="fa-regular fa-calendar-days sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="tabWorkoutPlanner">Heti Edzések</span>
+                </button>
+                <button id="w-tab-archive-btn" onclick="switchWorkoutTab('archive')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all duration-200 relative">
+                    <i class="fa-solid fa-box-archive sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="tabArchive">Archívum</span>
+                    <span id="workout-archive-badge" class="ml-1 px-1.5 py-0.2 bg-slate-800 text-[10px] text-bluebrand-400 rounded-full font-bold">0</span>
+                </button>
+            </nav>
+
+            <nav id="docs-nav" class="hidden flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-redbrand-900/50 transition-all">
+                <div class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-redbrand-600 text-white shadow-md flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-medical"></i><span data-i18n="menuDocs">Dokumentumtár</span>
+                </div>
+            </nav>
+
+            <nav id="recovery-nav" class="hidden flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-purplebrand-900/50 transition-all">
+                <button id="r-tab-planner-btn" onclick="switchRecoveryTab('planner')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-purplebrand-600 text-white shadow-md">
+                    <i class="fa-regular fa-calendar-days sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="tabRecoveryPlanner">Heti Regeneráció</span>
+                </button>
+                <button id="r-tab-archive-btn" onclick="switchRecoveryTab('archive')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all duration-200 relative">
+                    <i class="fa-solid fa-box-archive sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="tabArchive">Archívum</span>
+                    <span id="recovery-archive-badge" class="ml-1 px-1.5 py-0.2 bg-slate-800 text-[10px] text-purplebrand-400 rounded-full font-bold">0</span>
+                </button>
+            </nav>
+
+            <!-- Actions Header -->
+            <div class="flex items-center gap-2">
+                <!-- BEÁLLÍTÁSOK / NYELV GOMB -->
+                <button onclick="openSettingsModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Beállítások / Settings">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+
+                <button onclick="openProfilesModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 transition shadow-sm">
+                    <img id="active-profile-img" src="" class="w-5 h-5 rounded-full object-cover hidden">
+                    <i id="active-profile-icon" class="fa-solid fa-user text-slate-400"></i>
+                    <span id="active-profile-name" class="hidden lg:inline" data-i18n="profileBtn">Fiók</span>
+                </button>
+
+                <button onclick="handleLogout()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-red-950/60 border border-slate-700 hover:border-red-800/50 text-slate-400 hover:text-red-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Kijelentkezés">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span class="hidden md:inline" data-i18n="logoutBtn">Kilépés</span>
+                </button>
+                
+                <div id="diet-actions" class="flex items-center gap-2 transition-all">
+                    <button onclick="openWeeklyShoppingList()" class="px-3 py-1.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-800/60 text-emerald-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                        <i class="fa-solid fa-cart-shopping"></i><span class="hidden md:inline" data-i18n="weeklyShopping">Heti Bevásárlás</span>
+                    </button>
+                    <button onclick="archiveCurrentWeek()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-box-archive text-amber-400"></i><span class="hidden lg:inline" data-i18n="saveBtn">Mentés</span>
+                    </button>
+                    <button onclick="startNewWeekPrompt()" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-400 text-xs font-semibold flex items-center gap-1.5 transition" title="Új hét indítása">
+                        <i class="fa-solid fa-rotate-right"></i><span class="hidden lg:inline" data-i18n="newWeekBtn">Új Hét</span>
+                    </button>
+                </div>
+
+                <div id="workout-actions" class="hidden flex items-center gap-2 transition-all">
+                    <!-- Gyors hozzáadás az aktuális naphoz -->
+                    <button onclick="openWorkoutLogModal()" class="px-3 py-1.5 rounded-xl bg-bluebrand-950/80 hover:bg-bluebrand-900 border border-bluebrand-800/60 text-bluebrand-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Edzés rögzítése a mai naphoz">
+                        <i class="fa-solid fa-plus"></i><span class="hidden sm:inline" data-i18n="addWorkoutToday">Mai Edzés</span>
+                    </button>
+                    <button onclick="startNewWorkoutWeekPrompt()" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-400 text-xs font-semibold flex items-center gap-1.5 transition" title="Új edzéshét indítása">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button onclick="archiveCurrentWorkoutWeek()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-box-archive text-bluebrand-400"></i><span class="hidden lg:inline" data-i18n="saveBtn">Hét Mentése</span>
+                    </button>
+                </div>
+
+                <div id="docs-actions" class="hidden flex items-center gap-2 transition-all">
+                    <button onclick="openUploadDocModal()" class="px-3 py-1.5 rounded-xl bg-redbrand-950/80 hover:bg-redbrand-900 border border-redbrand-800/60 text-redbrand-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                        <i class="fa-solid fa-file-circle-plus"></i><span class="hidden sm:inline" data-i18n="newDoc">Új Dokumentum</span>
+                    </button>
+                </div>
+
+                <div id="recovery-actions" class="hidden flex items-center gap-2 transition-all">
+                    <!-- Gyors hozzáadás az aktuális naphoz -->
+                    <button onclick="openRecoveryActivityModal()" class="px-3 py-1.5 rounded-xl bg-purplebrand-950/80 hover:bg-purplebrand-900 border border-purplebrand-800/60 text-purplebrand-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Aktivitás rögzítése a mai naphoz">
+                        <i class="fa-solid fa-plus"></i><span class="hidden sm:inline" data-i18n="addRecoveryToday">Mai Aktivitás</span>
+                    </button>
+                    <button onclick="startNewRecoveryWeekPrompt()" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-400 text-xs font-semibold flex items-center gap-1.5 transition" title="Új recovery hét indítása">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button onclick="archiveCurrentRecoveryWeek()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-box-archive text-purplebrand-400"></i><span class="hidden lg:inline" data-i18n="saveBtn">Hét Mentése</span>
+                    </button>
+                </div>
+
+                <div id="sync-status" class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 text-[11px] font-medium flex items-center gap-1.5 border border-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                    <span id="sync-text" class="hidden sm:inline">Kapcsolódás...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- TAB 1: DIET PLANNER VIEW -->
+        <div id="tab-planner" class="space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl" id="weekly-macro-summary"></div>
+            <div id="planner-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3"></div>
+        </div>
+
+        <!-- TAB 2: MEAL LIBRARY VIEW -->
+        <div id="tab-library" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white" data-i18n="mealLibraryTitle">Ételkönyvtár & Receptek</h2>
+                    <p class="text-xs text-slate-400" data-i18n="mealLibraryDesc">Kezeld a saját sportolói receptjeidet és makróikat</p>
+                </div>
+                <button onclick="openAddMealModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg shadow-brand-600/20 transition">
+                    <i class="fa-solid fa-plus"></i> <span data-i18n="newMealBtn">Új Étel</span>
+                </button>
+            </div>
+            <div id="library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+        </div>
+
+        <!-- TAB 3: ARCHIVE VIEW (Étrend lista & Naptár nézet) -->
+        <div id="tab-archive" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white" data-i18n="savedWeeksTitle">Mentett Heti Étrendek</h2>
+                    <p class="text-xs text-slate-400" data-i18n="savedWeeksDesc">Tekintsd át vagy töltsd be újra a korábbi heteidet</p>
+                </div>
+                <!-- Lista / Naptár választó gombok -->
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button onclick="setArchiveView('diet', 'list')" id="diet-arch-list-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow">
+                        <i class="fa-solid fa-list mr-1"></i><span data-i18n="listView">Lista</span>
+                    </button>
+                    <button onclick="setArchiveView('diet', 'calendar')" id="diet-arch-cal-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
+                        <i class="fa-regular fa-calendar mr-1"></i><span data-i18n="calView">Naptár</span>
+                    </button>
+                </div>
+            </div>
+            <div id="archive-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="diet-calendar-container" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl"></div>
+        </div>
+
+        <!-- WORKOUT TAB 1: PLANNER & LOG -->
+        <div id="tab-workout-planner" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-bluebrand-800/40 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-bluebrand-500/20 flex items-center justify-center text-bluebrand-400 text-lg"><i class="fa-solid fa-person-running"></i></div>
+                    <div>
+                        <h2 class="text-base font-bold text-white" data-i18n="workoutLogTitle">Heti Edzésnapló & Célok</h2>
+                        <p class="text-xs text-slate-400">Állítsd be a hét időszakát és az elérendő edzéscélt</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center gap-2">
+                        <span class="text-xs text-slate-400 font-medium">Hét Dátuma:</span>
+                        <input type="text" id="workout-week-date" onchange="saveWorkoutWeekMeta()" placeholder="pl. 2026. Május 12-18." class="bg-slate-900 border border-slate-700 text-xs text-white px-2 py-1 rounded-lg focus:outline-none focus:border-bluebrand-500 w-36 text-center">
+                    </div>
+                    <div class="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center gap-2">
+                        <span class="text-xs text-slate-400 font-medium">Cél:</span>
+                        <input type="text" id="workout-week-goal" onchange="saveWorkoutWeekMeta()" placeholder="pl. 4 edzés, 1 futás" class="bg-slate-900 border border-slate-700 text-xs text-white px-2 py-1 rounded-lg focus:outline-none focus:border-bluebrand-500 w-36 text-center">
+                    </div>
+                </div>
+            </div>
+
+            <div id="workout-log-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3"></div>
+        </div>
+
+        <!-- WORKOUT TAB 2: ARCHIVE -->
+        <div id="tab-workout-archive" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white" data-i18n="savedWorkoutsTitle">Korábbi Mentett Edzéshetek</h2>
+                    <p class="text-xs text-slate-400">Tekintsd át a korábbi edzésnaplóidat és teljesítményeidet</p>
+                </div>
+                <!-- Lista / Naptár választó gombok -->
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button onclick="setArchiveView('workout', 'list')" id="workout-arch-list-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-bluebrand-600 text-white shadow">
+                        <i class="fa-solid fa-list mr-1"></i><span data-i18n="listView">Lista</span>
+                    </button>
+                    <button onclick="setArchiveView('workout', 'calendar')" id="workout-arch-cal-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
+                        <i class="fa-regular fa-calendar mr-1"></i><span data-i18n="calView">Naptár</span>
+                    </button>
+                </div>
+            </div>
+            <div id="workout-archive-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="workout-calendar-container" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl"></div>
+        </div>
+
+        <!-- TAB: DOKUMENTUMOK VIEW (PIROS TÉMA) -->
+        <div id="tab-docs" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-redbrand-800/40 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-redbrand-500/20 flex items-center justify-center text-redbrand-400 text-lg">
+                        <i class="fa-solid fa-file-medical"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-white" data-i18n="docsTitle">Egészségügyi Dokumentumok & Mérések</h2>
+                        <p class="text-xs text-slate-400">Vérvételek, InBody leletek, táplálkozási tervek, sérülések</p>
+                    </div>
+                </div>
+                <button onclick="openUploadDocModal()" class="px-4 py-2 bg-redbrand-600 hover:bg-redbrand-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg shadow-redbrand-600/30 transition">
+                    <i class="fa-solid fa-file-circle-plus"></i> <span data-i18n="newDoc">Dokumentum Feltöltése</span>
+                </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2" id="docs-filter-bar">
+                <button onclick="filterDocuments('all')" class="doc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-redbrand-600 text-white shadow" data-type="all">Összes</button>
+                <button onclick="filterDocuments('Vérvétel')" class="doc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 border border-slate-800 hover:text-white" data-type="Vérvétel"><i class="fa-solid fa-droplet text-redbrand-400 mr-1.5"></i>Vérvétel</button>
+                <button onclick="filterDocuments('InBody')" class="doc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 border border-slate-800 hover:text-white" data-type="InBody"><i class="fa-solid fa-weight-scale text-redbrand-400 mr-1.5"></i>InBody</button>
+                <button onclick="filterDocuments('Táplálkozási terv')" class="doc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 border border-slate-800 hover:text-white" data-type="Táplálkozási terv"><i class="fa-solid fa-utensils text-redbrand-400 mr-1.5"></i>Táplálkozási terv</button>
+                <button onclick="filterDocuments('Sérülés')" class="doc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 border border-slate-800 hover:text-white" data-type="Sérülés"><i class="fa-solid fa-kit-medical text-redbrand-400 mr-1.5"></i>Sérülés</button>
+                <button onclick="filterDocuments('Egyéb')" class="doc-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 border border-slate-800 hover:text-white" data-type="Egyéb"><i class="fa-solid fa-file-lines text-redbrand-400 mr-1.5"></i>Egyéb</button>
+            </div>
+
+            <div id="docs-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+        </div>
+
+        <!-- TAB: RECOVERY VIEW (LILA TÉMA) -->
+        <div id="tab-recovery-planner" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-purplebrand-800/40 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purplebrand-500/20 flex items-center justify-center text-purplebrand-400 text-lg">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-white" data-i18n="recoveryLogTitle">Heti Recovery & Alvásnapló</h2>
+                        <p class="text-xs text-slate-400">Kövesd a regenerációdat, alvásodat és terápiáidat</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center gap-2">
+                        <span class="text-xs text-slate-400 font-medium">Hét Dátuma:</span>
+                        <input type="text" id="recovery-week-date" onchange="saveRecoveryWeekMeta()" placeholder="pl. 2026. Május 12-18." class="bg-slate-900 border border-slate-700 text-xs text-white px-2 py-1 rounded-lg focus:outline-none focus:border-purplebrand-500 w-36 text-center">
+                    </div>
+                    <div class="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 flex items-center gap-2">
+                        <span class="text-xs text-slate-400 font-medium">Cél:</span>
+                        <input type="text" id="recovery-week-goal" onchange="saveRecoveryWeekMeta()" placeholder="pl. Napi 8 óra alvás, 3 szauna" class="bg-slate-900 border border-slate-700 text-xs text-white px-2 py-1 rounded-lg focus:outline-none focus:border-purplebrand-500 w-44 text-center">
+                    </div>
+                </div>
+            </div>
+
+            <div id="recovery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3"></div>
+        </div>
+
+        <!-- RECOVERY TAB 2: ARCHIVE -->
+        <div id="tab-recovery-archive" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white" data-i18n="savedRecoveryTitle">Korábbi Mentett Recovery Hetek</h2>
+                    <p class="text-xs text-slate-400">Tekintsd át a korábbi regenerációs heteidet és pontszámaidat</p>
+                </div>
+                <!-- Lista / Naptár választó gombok -->
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button onclick="setArchiveView('recovery', 'list')" id="recovery-arch-list-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-purplebrand-600 text-white shadow">
+                        <i class="fa-solid fa-list mr-1"></i><span data-i18n="listView">Lista</span>
+                    </button>
+                    <button onclick="setArchiveView('recovery', 'calendar')" id="recovery-arch-cal-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
+                        <i class="fa-regular fa-calendar mr-1"></i><span data-i18n="calView">Naptár</span>
+                    </button>
+                </div>
+            </div>
+            <div id="recovery-archive-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="recovery-calendar-container" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl"></div>
+        </div>
+
+    </main>
+
+    <!-- MODAL: BEÁLLÍTÁSOK / NYELV (SETTINGS) -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-language text-brand-400"></i> <span data-i18n="settingsTitle">Nyelvválasztás / Language</span></h3>
+                <button onclick="closeModal('settings-modal')" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-2">
+                <button onclick="changeLanguage('hu')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition flex items-center justify-between">
+                    <span>🇭🇺 Magyar</span>
+                    <span id="lang-check-hu" class="text-brand-400"><i class="fa-solid fa-check"></i></span>
+                </button>
+                <button onclick="changeLanguage('en')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition flex items-center justify-between">
+                    <span>🇬🇧 English</span>
+                    <span id="lang-check-en" class="text-brand-400 hidden"><i class="fa-solid fa-check"></i></span>
+                </button>
+                <button onclick="changeLanguage('de')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition flex items-center justify-between">
+                    <span>🇩🇪 Deutsch</span>
+                    <span id="lang-check-de" class="text-brand-400 hidden"><i class="fa-solid fa-check"></i></span>
+                </button>
+                <button onclick="changeLanguage('fr')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition flex items-center justify-between">
+                    <span>🇫🇷 Français</span>
+                    <span id="lang-check-fr" class="text-brand-400 hidden"><i class="fa-solid fa-check"></i></span>
+                </button>
+                <button onclick="changeLanguage('es')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition flex items-center justify-between">
+                    <span>🇪🇸 Español</span>
+                    <span id="lang-check-es" class="text-brand-400 hidden"><i class="fa-solid fa-check"></i></span>
+                </button>
+            </div>
+            <button onclick="closeModal('settings-modal')" class="mt-5 w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold" data-i18n="closeBtn">Bezárás</button>
+        </div>
+    </div>
+
+    <!-- MODAL: NAPTÁR NAP RÉSZLETEI (CALENDAR DAY DETAILS) -->
+    <div id="calendar-day-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-white text-base flex items-center gap-2" id="cal-day-modal-title">
+                    <i class="fa-regular fa-calendar-days text-brand-400"></i> Nap Részletei
+                </h3>
+                <button onclick="closeModal('calendar-day-modal')" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="cal-day-modal-content" class="overflow-y-auto space-y-3 flex-1 custom-scrollbar text-xs text-slate-300 pr-1"></div>
+            <button onclick="closeModal('calendar-day-modal')" class="mt-4 w-full py-2 bg-slate-800 text-white rounded-xl text-xs font-semibold" data-i18n="closeBtn">Bezárás</button>
+        </div>
+    </div>
+
+    <!-- MODAL: DOKUMENTUM FELTÖLTÉSE (PIROS) -->
+    <div id="doc-upload-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-redbrand-800/50 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden ring-1 ring-redbrand-500/20">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-circle-plus text-redbrand-400"></i> Új Dokumentum Feltöltése
+                </h3>
+                <button onclick="closeModal('doc-upload-modal')" class="text-slate-400 hover:text-white p-2 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="saveDocumentForm(event)" class="p-4 space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Típus / Kategória</label>
+                    <select id="doc-type" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-redbrand-500">
+                        <option value="Vérvétel">🩸 Vérvétel</option>
+                        <option value="InBody">⚖️ InBody Mérés</option>
+                        <option value="Táplálkozási terv">🥗 Táplálkozási terv</option>
+                        <option value="Sérülés">🩹 Sérülés / Orvosi lelet</option>
+                        <option value="Egyéb">📄 Egyéb Dokumentum</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Dátum</label>
+                        <input type="date" id="doc-date" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-redbrand-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Megnevezés (Opcionális)</label>
+                        <input type="text" id="doc-title" placeholder="pl. Diéta 2026, Kontroll..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-redbrand-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Fájl (Fotózz telefonnal vagy tölts fel képet / PDF-et)</label>
+                    <input type="file" id="doc-file" accept="image/*,application/pdf" required class="w-full text-slate-400 bg-slate-950 border border-slate-800 rounded-xl p-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-redbrand-600 file:text-white hover:file:bg-redbrand-500 cursor-pointer">
+                    <p class="text-[10px] text-slate-500 mt-1">A rendszer automatikusan optimalizálja és tömöríti a fotót.</p>
+                </div>
+
+                <div id="doc-upload-progress" class="hidden text-center text-xs text-redbrand-400 py-2">
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> Dokumentum optimalizálása és mentése...
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2 border-t border-slate-800">
+                    <button type="button" onclick="closeModal('doc-upload-modal')" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold hover:bg-slate-700">Mégse</button>
+                    <button type="submit" id="doc-submit-btn" class="px-5 py-2 rounded-xl bg-redbrand-600 hover:bg-redbrand-500 text-white font-bold shadow-lg shadow-redbrand-600/30">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: DOKUMENTUM NAGYÍTÓ & MEGTEKINTŐ (VIEWER) -->
+    <div id="doc-viewer-modal" class="fixed inset-0 z-50 hidden bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-3 sm:p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+                <div class="flex items-center gap-2 overflow-hidden">
+                    <span id="doc-viewer-badge" class="px-2 py-0.5 rounded-lg text-xs font-bold bg-redbrand-950 text-redbrand-400 border border-redbrand-800/50"></span>
+                    <h3 id="doc-viewer-title" class="font-bold text-sm text-white truncate"></h3>
+                    <span id="doc-viewer-date" class="text-xs text-slate-400 whitespace-nowrap"></span>
+                </div>
+                <button onclick="closeModal('doc-viewer-modal')" class="text-slate-400 hover:text-white p-2 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div id="doc-viewer-body" class="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-950 min-h-[50vh] custom-scrollbar"></div>
+            
+            <div class="p-3 bg-slate-900 border-t border-slate-800 flex justify-end">
+                <button onclick="closeModal('doc-viewer-modal')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl">Bezárás</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RECOVERY SCORES -->
+    <div id="recovery-scores-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-purplebrand-800/50 rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden ring-1 ring-purplebrand-500/20">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bed text-purplebrand-400"></i> <span id="recovery-scores-modal-title">Napi Pontszámok</span>
+                </h3>
+                <button onclick="closeModal('recovery-scores-modal')" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form onsubmit="saveRecoveryScoresForm(event)" class="p-4 space-y-4">
+                <input type="hidden" id="rec-scores-day-index">
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-semibold text-slate-300">Sleep Score (1 - 100)</label>
+                        <span id="sleep-score-val-badge" class="text-xs font-bold px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-purplebrand-300">-</span>
+                    </div>
+                    <input type="range" id="rec-sleep-input" min="1" max="100" value="80" class="w-full h-2 rounded-lg appearance-none cursor-pointer" oninput="updateSleepScoreDisplay(this.value)">
+                    <div class="flex justify-between text-[9px] text-slate-500 mt-1">
+                        <span>Gyenge (&lt;60)</span>
+                        <span>Közepes (60-79)</span>
+                        <span>Kiváló (80+)</span>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-semibold text-slate-300">Recovery Score (1% - 100%)</label>
+                        <span id="recovery-score-val-badge" class="text-xs font-bold px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-emerald-400">-</span>
+                    </div>
+                    <input type="range" id="rec-score-input" min="1" max="100" value="70" class="w-full h-2 rounded-lg appearance-none cursor-pointer" oninput="updateRecoveryScoreDisplay(this.value)">
+                    <div class="flex justify-between text-[9px] text-slate-500 mt-1">
+                        <span class="text-red-400">1-33% Piros</span>
+                        <span class="text-amber-400">34-66% Sárga</span>
+                        <span class="text-emerald-400">67-100% Zöld</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                    <button type="button" onclick="clearDayScores()" class="mr-auto text-[11px] text-red-400 hover:underline">Törlés</button>
+                    <button type="button" onclick="closeModal('recovery-scores-modal')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">Mégse</button>
+                    <button type="submit" class="px-4 py-1.5 rounded-xl bg-purplebrand-600 hover:bg-purplebrand-500 text-white text-xs font-bold shadow-lg shadow-purplebrand-600/30">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: RECOVERY ACTIVITY -->
+    <div id="recovery-activity-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-purplebrand-800/50 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden ring-1 ring-purplebrand-500/20">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-base text-white flex items-center gap-2" id="recovery-activity-modal-title">
+                    <i class="fa-solid fa-spa text-purplebrand-400"></i> Recovery Aktivitás
+                </h3>
+                <button onclick="closeModal('recovery-activity-modal')" class="text-slate-400 hover:text-white p-2 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="saveRecoveryActivityForm(event)" class="p-4 space-y-3.5 text-xs">
+                <input type="hidden" id="rec-act-day-index">
+                <input type="hidden" id="rec-act-id">
+
+                <div>
+                    <label class="block text-purplebrand-300 font-semibold mb-1">Aktivitás Típusa</label>
+                    <select id="rec-act-type" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purplebrand-500">
+                        <option value="Gerinctorna">🧘 Gerinctorna</option>
+                        <option value="Nyújtás">🤸 Nyújtás</option>
+                        <option value="Mobilizálás">🔄 Mobilizálás</option>
+                        <option value="Bemelegítés">🔥 Bemelegítés</option>
+                        <option value="Normatec">🦿 Normatec</option>
+                        <option value="Jeges merülés">🧊 Jeges merülés</option>
+                        <option value="Hideg zuhany">🚿 Hideg zuhany</option>
+                        <option value="Meleg zuhany">🛁 Meleg zuhany</option>
+                        <option value="Hengerezés">🪵 Hengerezés</option>
+                        <option value="Sauna">🧖 Sauna</option>
+                        <option value="Redlight teraphy">🔴 Redlight teraphy</option>
+                        <option value="Zone 1 activity">🚶 Zone 1 activity</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Egyedi Név (Opcionális)</label>
+                        <input type="text" id="rec-act-custom-name" placeholder="pl. Esti levezetés" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purplebrand-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1">Időtartam (Opcionális)</label>
+                        <input type="text" id="rec-act-duration" placeholder="pl. 20 perc, 3x3 perc" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purplebrand-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Gyakorlatsor / Program Leírás (Opcionális)</label>
+                    <textarea id="rec-act-routine" rows="3" placeholder="Csípő mobilitás 10 perc, mellkas nyitás..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purplebrand-500 custom-scrollbar"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 font-semibold mb-1">Megjegyzés / Érzések (Opcionális)</label>
+                    <textarea id="rec-act-notes" rows="2" placeholder="Nagyon felfrissített, csökkent a derékfájás..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-slate-500 custom-scrollbar"></textarea>
+                </div>
+
+                <div class="pt-3 flex justify-between items-center border-t border-slate-800">
+                    <button type="button" id="rec-act-delete-btn" onclick="deleteCurrentRecoveryActivity()" class="px-3 py-2 rounded-xl bg-red-950/60 hover:bg-red-900 border border-red-800/50 text-red-400 font-semibold hidden">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Törlés
+                    </button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" onclick="closeModal('recovery-activity-modal')" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-semibold hover:bg-slate-700">Mégse</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-purplebrand-600 hover:bg-purplebrand-500 text-white font-bold shadow-lg shadow-purplebrand-600/30">Mentés</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: WORKOUT LOG ENTRY -->
+    <div id="workout-log-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-bluebrand-800/50 rounded-2xl max-w-lg w-full max-h-[95vh] flex flex-col shadow-2xl overflow-hidden ring-1 ring-bluebrand-500/20">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+                <h3 class="font-bold text-base text-white flex items-center gap-2" id="workout-log-modal-title">
+                    <i class="fa-solid fa-dumbbell text-bluebrand-400"></i> Edzés Rögzítése
+                </h3>
+                <button onclick="closeModal('workout-log-modal')" class="text-slate-400 hover:text-white p-2 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="saveWorkoutLogForm(event)" class="p-4 overflow-y-auto custom-scrollbar space-y-4">
+                <input type="hidden" id="workout-log-day-index">
+                <input type="hidden" id="workout-log-id">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-bluebrand-300 mb-1">Edzés Neve / Fókusza</label>
+                    <input type="text" id="workout-log-name" required placeholder="pl. Felsőtest erő, Láb nap, 10km Futás" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-bluebrand-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-bluebrand-300 mb-1">Elvégzett Program (Gyakorlatok, szettek)</label>
+                    <textarea id="workout-log-program" rows="4" placeholder="Fekvenyomás: 4x8 (80kg)&#10;Húzódzkodás: 4x10&#10;Döntött törzsű evezés: 3x10 (60kg)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-bluebrand-500 custom-scrollbar"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Megjegyzés / Érzések (Opcionális)</label>
+                    <textarea id="workout-log-notes" rows="2" placeholder="Vállam kicsit fájt az első szettnél, de utána bemelegedett..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-slate-500 custom-scrollbar"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-semibold text-white">Megerőltetés (RPE)</label>
+                            <span id="rpe-display" class="font-bold text-sm text-green-400 bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-800">5 / 10</span>
+                        </div>
+                        <input type="range" id="workout-log-rpe" min="1" max="10" value="5" class="w-full h-2 rounded-lg appearance-none cursor-pointer" oninput="updateRpeDisplay(this.value)">
+                        <div class="flex justify-between text-[9px] text-slate-500 mt-1 font-medium">
+                            <span>Könnyű</span>
+                            <span>Közepes</span>
+                            <span>Maximális</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-white mb-2">Teljesítmény (Hogyan ment?)</label>
+                        <div class="flex gap-1.5 justify-between">
+                            <button type="button" onclick="setRating(1)" class="rating-btn flex-1 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-lg grayscale hover:grayscale-0 transition filter"><span title="Gyenge">😩</span></button>
+                            <button type="button" onclick="setRating(2)" class="rating-btn flex-1 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-lg grayscale hover:grayscale-0 transition filter"><span title="Elment">🙁</span></button>
+                            <button type="button" onclick="setRating(3)" class="rating-btn flex-1 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-lg transition filter" data-selected="true" style="filter: grayscale(0); border-color: #3b82f6; background: rgba(59, 130, 246, 0.1);"><span title="Közepes">😐</span></button>
+                            <button type="button" onclick="setRating(4)" class="rating-btn flex-1 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-lg grayscale hover:grayscale-0 transition filter"><span title="Jó">🙂</span></button>
+                            <button type="button" onclick="setRating(5)" class="rating-btn flex-1 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-lg grayscale hover:grayscale-0 transition filter"><span title="Kiváló">🤩</span></button>
+                        </div>
+                        <input type="hidden" id="workout-log-rating" value="3">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-between items-center">
+                    <button type="button" id="workout-log-delete-btn" onclick="deleteCurrentWorkoutLog()" class="px-3 py-2 rounded-xl bg-red-950/60 hover:bg-red-900 border border-red-800/50 text-red-400 text-xs font-semibold hidden">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Törlés
+                    </button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" onclick="closeModal('workout-log-modal')" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700">Mégse</button>
+                        <button type="submit" class="px-4 py-2 bg-bluebrand-600 hover:bg-bluebrand-500 text-white text-xs font-semibold shadow-lg shadow-bluebrand-600/30">Mentés</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT MEAL -->
+    <div id="add-meal-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-4 overflow-y-auto max-h-[90vh]">
+            <h3 id="meal-form-title" class="font-bold text-white mb-4">Étel</h3>
+            <form onsubmit="saveMeal(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="meal-id">
+                <input type="text" id="meal-name" required placeholder="Név" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white">
+                <input type="url" id="meal-image" placeholder="Kép URL (pl. https://...)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white">
+                <div class="grid grid-cols-4 gap-2">
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Kalória (kcal)</label>
+                        <input type="number" step="any" id="meal-calories" required placeholder="Kcal" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Fehérje (g)</label>
+                        <input type="number" step="any" id="meal-protein" required placeholder="g" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Szénhidrát (g)</label>
+                        <input type="number" step="any" id="meal-carbs" required placeholder="g" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Zsír (g)</label>
+                        <input type="number" step="any" id="meal-fat" required placeholder="g" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-white">
+                    </div>
+                </div>
+                <textarea id="meal-ingredients" rows="3" placeholder="Hozzávalók (pl. 200g csirkemell, rizs...)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"></textarea>
+                <textarea id="meal-recipe" rows="3" placeholder="Recept / Elkészítés" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white"></textarea>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" onclick="closeModal('add-meal-modal')" class="px-4 py-2 bg-slate-800 text-white rounded-xl">Mégse</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-xl font-bold">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: SELECT MEAL FOR PLANNER -->
+    <div id="select-meal-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 flex flex-col max-h-[85vh] shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-utensils text-brand-400"></i> Étel Kiválasztása
+                </h3>
+                <button onclick="closeModal('select-meal-modal')" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="mb-3 flex gap-2">
+                <input type="text" id="select-meal-search" placeholder="Keresés az ételek között..." oninput="filterSelectMeals(this.value)" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brand-500">
+                <button onclick="quickAddMealFromPicker()" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold whitespace-nowrap shadow">
+                    <i class="fa-solid fa-plus mr-1"></i>Új Étel
+                </button>
+            </div>
+            
+            <div id="select-meal-list" class="overflow-y-auto max-h-[50vh] space-y-2 custom-scrollbar pr-2 flex-1"></div>
+            
+            <button onclick="closeModal('select-meal-modal')" class="mt-4 w-full py-2 bg-slate-800 text-white rounded-xl text-xs font-semibold">Bezárás</button>
+        </div>
+    </div>
+
+    <!-- MODAL: RECIPE DETAILS -->
+    <div id="recipe-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full overflow-hidden flex flex-col">
+            <div id="recipe-modal-content" class="p-6 overflow-y-auto max-h-[80vh] custom-scrollbar"></div>
+            <div class="p-3 bg-slate-950 text-right">
+                <button onclick="closeModal('recipe-modal')" class="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs">Bezárás</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SHOPPING LIST (KIPIPÁLHATÓ NAPI ÉS HETI LISTA) -->
+    <div id="shopping-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-4 flex flex-col max-h-[90vh] shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2">
+                    <h3 id="shopping-modal-title" class="font-bold text-white flex items-center gap-2 text-sm sm:text-base">
+                        <i class="fa-solid fa-cart-shopping text-emerald-400"></i> Bevásárlólista
+                    </h3>
+                    <span id="shopping-progress-badge" class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full font-bold hidden">0 / 0 kész</span>
+                </div>
+                <button onclick="closeModal('shopping-modal')" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div id="shopping-list-content" class="overflow-y-auto space-y-3 flex-1 custom-scrollbar pr-1"></div>
+            
+            <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+                <button onclick="clearShoppingChecked()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left"></i> Pipák törlése
+                </button>
+                <button onclick="closeModal('shopping-modal')" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-brand-600/20 transition">
+                    Kész
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRM -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <h3 class="font-bold text-white" id="confirm-title">Megerősítés</h3>
+            <p class="text-xs text-slate-300" id="confirm-message">Biztosan folytatod?</p>
+            <div class="flex justify-center gap-3">
+                <button id="confirm-cancel-btn" class="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs">Mégse</button>
+                <button id="confirm-ok-btn" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs">Igen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PROFILES -->
+    <div id="profiles-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-4 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-white"><i class="fa-solid fa-users text-brand-400 mr-2"></i> Profilok & Fiók</h3>
+                <button onclick="closeModal('profiles-modal')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="profiles-list" class="overflow-y-auto space-y-2 flex-1 mb-4 custom-scrollbar"></div>
+            <button onclick="openProfileFormModal()" class="w-full py-2 bg-brand-600 text-white text-xs rounded-xl"><i class="fa-solid fa-plus"></i> Új Profil Hozzáadása</button>
+        </div>
+    </div>
+
+    <!-- MODAL: PROFILE FORM -->
+    <div id="profile-form-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5">
+            <h3 class="font-bold text-white mb-4" id="profile-form-title">Profil Szerkesztése</h3>
+            <form onsubmit="saveProfileForm(event)" class="space-y-4">
+                <input type="hidden" id="profile-form-id">
+                <input type="text" id="profile-form-name" required placeholder="Név" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white">
+                <input type="url" id="profile-form-image" placeholder="Kép URL (Opcionális)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white">
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('profile-form-modal')" class="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs">Mégse</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: SUPPLEMENT FORM -->
+    <div id="supplement-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-purple-800/50 rounded-2xl max-w-sm w-full flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-sm text-white"><i class="fa-solid fa-pills text-purple-400 mr-2"></i> Kiegészítő Hozzáadása</h3>
+                <button onclick="closeModal('supplement-modal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveSupplementForm(event)" class="p-4 space-y-3">
+                <input type="hidden" id="supp-day-index">
+                <input type="text" id="supp-name" required placeholder="pl. Kreatin, Vitamin, Omega-3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+                <input type="text" id="supp-time" placeholder="Időpont / Adag (pl. Reggel, 5g)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('supplement-modal')" class="px-3 py-1.5 bg-slate-800 text-white text-xs rounded-xl">Mégse</button>
+                    <button type="submit" class="px-3 py-1.5 bg-purple-600 text-white text-xs rounded-xl font-bold">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: WORKOUT FORM -->
+    <div id="workout-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-orange-800/50 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-base text-white" id="workout-modal-title"><i class="fa-solid fa-dumbbell text-orange-400 mr-2"></i> Edzés / Edzés Kiegészítő Tervezés</h3>
+                <button onclick="closeModal('workout-modal')" class="text-slate-400 hover:text-white p-2 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveWorkoutForm(event)" class="p-4 space-y-4">
+                <input type="hidden" id="workout-day-index"><input type="hidden" id="workout-id">
+                <div><label class="block text-xs text-slate-300 mb-1">Edzés Cím / Típus</label><input type="text" id="workout-title" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs text-slate-300 mb-1">Időpont</label><input type="text" id="workout-time" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs"></div>
+                    <div><label class="block text-xs text-slate-300 mb-1">Intenzitás</label><select id="workout-intensity" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs"><option>Magas</option><option>Közepes</option><option>Könnyű</option></select></div>
+                </div>
+                <div><label class="block text-xs text-orange-400 font-semibold mb-1">Edzés előtti kiegészítők / Pre-workout</label><input type="text" id="workout-pre-supps" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="pl. BCAA, Citrullin"></div>
+                <div><label class="block text-xs text-orange-400 font-semibold mb-1">Edzés utáni kiegészítők / Post-workout</label><input type="text" id="workout-post-supps" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs" placeholder="pl. Protein turmix, Glutamin"></div>
+                <div class="pt-2 flex justify-between">
+                    <button type="button" id="workout-delete-btn" onclick="deleteCurrentWorkout()" class="px-3 py-2 bg-red-950/60 text-red-400 text-xs rounded-xl hidden">Törlés</button>
+                    <div class="flex gap-2 ml-auto"><button type="button" onclick="closeModal('workout-modal')" class="px-4 py-2 bg-slate-800 text-white text-xs rounded-xl">Mégse</button><button type="submit" class="px-4 py-2 bg-orange-600 text-white text-xs rounded-xl font-bold">Mentés</button></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ==================== 1. RÉSZ VÉGE ==================== -->
