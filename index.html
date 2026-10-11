@@ -2893,6 +2893,245 @@
             updateRecoveryArchiveBadge();
         });
     </script>
+    <!-- ========================================== -->
+    <!-- ÚJ FUNKCIÓK: NYELV, MAI NAP, NAPTÁR PATCH  -->
+    <!-- ========================================== -->
+    <script>
+        // 1. TÖBBNYELVŰSÉG (i18n) SZÓTÁR ÉS LOGIKA
+        window.i18n = {
+            hu: { days: ['Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat', 'Vasárnap'], months: ['Január', 'Február', 'Március', 'Április', 'Május', 'Június', 'Július', 'Augusztus', 'Szeptember', 'Október', 'November', 'December'], today: "Mai nap" },
+            en: { days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'], today: "Today" },
+            de: { days: ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'], months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'], today: "Heute" },
+            fr: { days: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'], months: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'], today: "Aujourd'hui" },
+            es: { days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'], months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'], today: "Hoy" }
+        };
+        window.currentLang = localStorage.getItem('fitplan_lang') || 'hu';
+        window._t = function(key) { return window.i18n[window.currentLang][key] || window.i18n['hu'][key]; };
+
+        // 2. DÁTUM KEZELŐ (MAI NAP MEGHATÁROZÁSA)
+        window.getTodayIndex = function() {
+            let day = new Date().getDay(); // 0 = Vasárnap
+            return day === 0 ? 6 : day - 1; // Átkonvertáljuk: 0 = Hétfő ... 6 = Vasárnap
+        };
+
+        // 3. RENDERELŐ FÜGGVÉNYEK FELÜLÍRÁSA A KIEMELÉSHEZ
+        function applyTodayHighlight(gridId, colorPrefix, textClass) {
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            const todayIdx = window.getTodayIndex();
+            const cards = grid.children;
+            
+            // Szövegek frissítése az aktuális nyelvre és a mai nap kiemelése
+            const currentDays = window._t('days');
+            Array.from(cards).forEach((card, idx) => {
+                const header = card.querySelector('h3');
+                if (header) {
+                    // Meglévő badge eltávolítása, hogy ne duplikálódjon
+                    const existingBadge = header.querySelector('.today-badge');
+                    if (existingBadge) existingBadge.remove();
+                    
+                    header.textContent = currentDays[idx] || header.textContent;
+
+                    // Ha ez a mai nap, rárakjuk az effektet
+                    if (idx === todayIdx) {
+                        card.classList.remove('border-slate-800');
+                        card.classList.add('border-2', `border-${colorPrefix}-500`, 'shadow-lg');
+                        let glowColor = colorPrefix === 'brand' ? '34,197,94' : (colorPrefix === 'bluebrand' ? '59,130,246' : '168,85,247');
+                        card.style.boxShadow = `0 0 20px rgba(${glowColor}, 0.15)`;
+                        
+                        header.classList.remove('text-white');
+                        header.classList.add(textClass);
+                        header.insertAdjacentHTML('beforeend', ` <span class="today-badge bg-${colorPrefix}-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1 align-middle">${window._t('today')}</span>`);
+                    }
+                }
+            });
+        }
+
+        const originalRenderPlanner = window.renderPlanner;
+        window.renderPlanner = function() { originalRenderPlanner(); applyTodayHighlight('planner-grid', 'brand', 'text-brand-400'); };
+
+        const originalRenderWorkoutPlanner = window.renderWorkoutPlanner;
+        window.renderWorkoutPlanner = function() { originalRenderWorkoutPlanner(); applyTodayHighlight('workout-log-grid', 'bluebrand', 'text-bluebrand-400'); };
+
+        const originalRenderRecoveryPlanner = window.renderRecoveryPlanner;
+        window.renderRecoveryPlanner = function() { originalRenderRecoveryPlanner(); applyTodayHighlight('recovery-grid', 'purplebrand', 'text-purplebrand-400'); };
+
+        // 4. AUTOMATIKUS NAP-HOZZÁRENDELÉS (Ha a gombnak nincs paramétere)
+        const origOpenWorkoutLogModal = window.openWorkoutLogModal;
+        window.openWorkoutLogModal = function(dIdx, logId = null) {
+            if (typeof dIdx !== 'number' || isNaN(dIdx)) dIdx = window.getTodayIndex();
+            origOpenWorkoutLogModal(dIdx, logId);
+        };
+
+        const origOpenRecoveryActivityModal = window.openRecoveryActivityModal;
+        window.openRecoveryActivityModal = function(dIdx, actId = null) {
+            if (typeof dIdx !== 'number' || isNaN(dIdx)) dIdx = window.getTodayIndex();
+            origOpenRecoveryActivityModal(dIdx, actId);
+        };
+
+        // 5. ARCHÍVUM NAPTÁRNÉZET LOGIKA
+        window.calCurrentMonth = new Date().getMonth();
+        window.calCurrentYear = new Date().getFullYear();
+        window.activeArchiveContext = 'diet';
+
+        window.setArchiveView = function(context, viewMode) {
+            window.activeArchiveContext = context;
+            const gridId = context === 'diet' ? 'archive-grid' : (context === 'workout' ? 'workout-archive-grid' : 'recovery-archive-grid');
+            const calId = context + '-calendar-container';
+            const color = context === 'diet' ? 'brand' : (context === 'workout' ? 'bluebrand' : 'purplebrand');
+
+            const listBtn = document.getElementById(context + '-arch-list-btn');
+            const calBtn = document.getElementById(context + '-arch-cal-btn');
+
+            if (viewMode === 'list') {
+                document.getElementById(gridId).classList.remove('hidden');
+                document.getElementById(calId).classList.add('hidden');
+                if(listBtn) listBtn.className = `px-3 py-1.5 rounded-lg text-xs font-bold transition bg-${color}-600 text-white shadow`;
+                if(calBtn) calBtn.className = `px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white`;
+            } else {
+                document.getElementById(gridId).classList.add('hidden');
+                document.getElementById(calId).classList.remove('hidden');
+                if(calBtn) calBtn.className = `px-3 py-1.5 rounded-lg text-xs font-bold transition bg-${color}-600 text-white shadow`;
+                if(listBtn) listBtn.className = `px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white`;
+                window.renderArchiveCalendar(context);
+            }
+        };
+
+        window.renderArchiveCalendar = function(context) {
+            const calContainer = document.getElementById(context + '-calendar-container');
+            const firstDay = new Date(window.calCurrentYear, window.calCurrentMonth, 1).getDay();
+            const daysInMonth = new Date(window.calCurrentYear, window.calCurrentMonth + 1, 0).getDate();
+            const monthName = window._t('months')[window.calCurrentMonth];
+            const startOffset = (firstDay + 6) % 7; 
+            const color = context === 'diet' ? 'brand' : (context === 'workout' ? 'bluebrand' : 'purplebrand');
+
+            let html = `
+                <div class="flex items-center justify-between mb-4">
+                    <button onclick="changeCalMonth(-1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-white transition"><i class="fa-solid fa-chevron-left"></i></button>
+                    <h3 class="font-bold text-white text-lg">${monthName} ${window.calCurrentYear}</h3>
+                    <button onclick="changeCalMonth(1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-white transition"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center mb-2">
+            `;
+            window._t('days').forEach(d => { html += `<div class="text-[10px] uppercase font-bold text-slate-500">${d.substring(0,2)}</div>`; });
+            html += `</div><div class="grid grid-cols-7 gap-2">`;
+            for (let i = 0; i < startOffset; i++) { html += `<div></div>`; }
+            for (let d = 1; d <= daysInMonth; d++) {
+                html += `
+                    <button onclick="openCalDayDetail(${d})" class="aspect-square flex items-center justify-center rounded-xl text-sm font-semibold transition bg-slate-950 text-slate-400 hover:bg-${color}-600 hover:text-white border border-slate-800">
+                        ${d}
+                    </button>
+                `;
+            }
+            html += `</div>`;
+            calContainer.innerHTML = html;
+        };
+
+        window.changeCalMonth = function(dir) {
+            window.calCurrentMonth += dir;
+            if (window.calCurrentMonth < 0) { window.calCurrentMonth = 11; window.calCurrentYear--; }
+            if (window.calCurrentMonth > 11) { window.calCurrentMonth = 0; window.calCurrentYear++; }
+            window.renderArchiveCalendar(window.activeArchiveContext);
+        };
+
+        window.openCalDayDetail = function(day) {
+            document.getElementById('cal-detail-title').textContent = `${window.calCurrentYear}. ${window._t('months')[window.calCurrentMonth]} ${day}.`;
+            document.getElementById('cal-detail-content').innerHTML = `
+                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center">
+                    <i class="fa-solid fa-box-archive text-2xl text-slate-600 mb-2"></i>
+                    <p class="text-xs">Ezen a napon elmentett adatok az adott hét archívumából érhetőek el.</p>
+                </div>
+            `;
+            document.getElementById('calendar-detail-modal').classList.remove('hidden');
+        };
+
+        window.changeLanguage = function(lang) {
+            window.currentLang = lang;
+            localStorage.setItem('fitplan_lang', lang);
+            if(window.currentAppMode === 'diet') window.renderPlanner();
+            if(window.currentAppMode === 'workout') window.renderWorkoutPlanner();
+            if(window.currentAppMode === 'recovery') window.renderRecoveryPlanner();
+            window.closeModal('settings-modal');
+            window.showToast('Nyelv beállítva: ' + lang.toUpperCase(), 'fa-language', 'brand');
+        };
+
+        // 6. UI BEILLESZTÉSE (Gombok és Modálok)
+        document.addEventListener('DOMContentLoaded', () => {
+            // Beállítások gomb a fejlécbe
+            const headerActions = document.querySelector('.flex.items-center.gap-2');
+            if (headerActions) {
+                headerActions.insertAdjacentHTML('afterbegin', `
+                    <button onclick="document.getElementById('settings-modal').classList.remove('hidden')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Nyelv / Language">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                `);
+            }
+
+            // Mai Gyorsgombok hozzáadása a fejléchez
+            const workoutActions = document.getElementById('workout-actions');
+            if (workoutActions) {
+                workoutActions.insertAdjacentHTML('afterbegin', `<button onclick="openWorkoutLogModal()" class="px-3 py-1.5 rounded-xl bg-bluebrand-950/80 hover:bg-bluebrand-900 border border-bluebrand-800/60 text-bluebrand-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"><i class="fa-solid fa-bolt"></i><span class="hidden sm:inline">Mai Edzés</span></button>`);
+            }
+            const recActions = document.getElementById('recovery-actions');
+            if (recActions) {
+                recActions.insertAdjacentHTML('afterbegin', `<button onclick="openRecoveryActivityModal()" class="px-3 py-1.5 rounded-xl bg-purplebrand-950/80 hover:bg-purplebrand-900 border border-purplebrand-800/60 text-purplebrand-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"><i class="fa-solid fa-bolt"></i><span class="hidden sm:inline">Mai Aktivitás</span></button>`);
+            }
+
+            // Archívum Váltó Gombok beillesztése a 3 archívumba
+            const contexts = [
+                { tab: 'tab-archive', grid: 'archive-grid', name: 'diet', color: 'brand' },
+                { tab: 'tab-workout-archive', grid: 'workout-archive-grid', name: 'workout', color: 'bluebrand' },
+                { tab: 'tab-recovery-archive', grid: 'recovery-archive-grid', name: 'recovery', color: 'purplebrand' }
+            ];
+
+            contexts.forEach(ctx => {
+                const tabEl = document.getElementById(ctx.tab);
+                if (tabEl) {
+                    const header = tabEl.querySelector('.flex.items-center.justify-between');
+                    if (header) {
+                        header.insertAdjacentHTML('beforeend', `
+                            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 ml-2">
+                                <button onclick="setArchiveView('${ctx.name}', 'list')" id="${ctx.name}-arch-list-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-${ctx.color}-600 text-white shadow"><i class="fa-solid fa-list sm:mr-1"></i><span class="hidden sm:inline">Lista</span></button>
+                                <button onclick="setArchiveView('${ctx.name}', 'calendar')" id="${ctx.name}-arch-cal-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white"><i class="fa-regular fa-calendar sm:mr-1"></i><span class="hidden sm:inline">Naptár</span></button>
+                            </div>
+                        `);
+                    }
+                    const gridEl = document.getElementById(ctx.grid);
+                    if (gridEl) {
+                        gridEl.insertAdjacentHTML('afterend', `<div id="${ctx.name}-calendar-container" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl mt-4"></div>`);
+                    }
+                }
+            });
+
+            // Rejtett modálok HTML beillesztése a Body végére
+            document.body.insertAdjacentHTML('beforeend', `
+                <div id="settings-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 flex items-center justify-center p-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+                        <h3 class="font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-language text-slate-400"></i> Nyelv / Language</h3>
+                        <div class="space-y-2">
+                            <button onclick="changeLanguage('hu')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition">🇭🇺 Magyar</button>
+                            <button onclick="changeLanguage('en')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition">🇬🇧 English</button>
+                            <button onclick="changeLanguage('de')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition">🇩🇪 Deutsch</button>
+                            <button onclick="changeLanguage('fr')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition">🇫🇷 Français</button>
+                            <button onclick="changeLanguage('es')" class="w-full text-left px-4 py-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-sm font-semibold transition">🇪🇸 Español</button>
+                        </div>
+                        <button onclick="closeModal('settings-modal')" class="mt-4 w-full py-2 bg-slate-800 text-white rounded-xl text-xs font-semibold">Bezárás</button>
+                    </div>
+                </div>
+
+                <div id="calendar-detail-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 flex items-center justify-center p-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+                        <h3 class="font-bold text-brand-400 mb-4" id="cal-detail-title">Nap Részletei</h3>
+                        <div id="cal-detail-content" class="text-sm text-slate-300 space-y-2 mb-4"></div>
+                        <button onclick="closeModal('calendar-detail-modal')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 transition text-white rounded-xl text-xs font-semibold">Bezárás</button>
+                    </div>
+                </div>
+            `);
+
+            // Ha egyből rendereljük a plannert, hogy frissüljenek a színek
+            setTimeout(() => { if(window.currentAppMode === 'diet') window.renderPlanner(); }, 100);
+        });
+    </script>
 
     <!-- FIREBASE AUTH & REALTIME SYNC (GOOGLE AUTH + EMAIL/PASSWORD AUTH) -->
     <script type="module">
