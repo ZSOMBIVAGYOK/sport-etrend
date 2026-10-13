@@ -11,7 +11,6 @@ import {
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-// Firebase Projekt Konfiguráció
 const firebaseConfig = {
     apiKey: "AIzaSyCiT4KQNBoPI-r47zGwQVTCVV5CZBUXcJQ",
     authDomain: "zsombor-etrend.firebaseapp.com",
@@ -30,11 +29,9 @@ try {
     const googleProvider = new GoogleAuthProvider();
     let activeUnsubscribe = null;
 
-    window.authMode = 'login'; // 'login' | 'register'
+    window.authMode = 'login';
 
-    // ==============================================================
-    // 1. CLOUD STORAGE FÁJLFELTÖLTŐ MOTOR (DOKUMENTUMOKHOZ)
-    // ==============================================================
+    // 1. TÁROLÓ (STORAGE)
     window.uploadFileToFirebaseStorage = async function(file) {
         if (!auth.currentUser) throw new Error("A feltöltéshez be kell jelentkezned!");
         const uid = auth.currentUser.uid;
@@ -45,9 +42,7 @@ try {
         return await getDownloadURL(snapshot.ref);
     };
 
-    // ==============================================================
-    // 2. AUTHENTICATION (GOOGLE, E-MAIL, JELSZÓ & KIJELENTKEZÉS)
-    // ==============================================================
+    // 2. BEJELENTKEZÉS ÉS HITELOSÍTÉS
     window.handleGoogleSignIn = async function() {
         try {
             await signInWithPopup(auth, googleProvider);
@@ -124,22 +119,7 @@ try {
     window.handleLogout = async function() {
         window.customConfirm(window.t('confirmTitle'), "Biztosan kijelentkezel a fiókodból?", async () => {
             if (activeUnsubscribe) activeUnsubscribe();
-            await signOut(auth);
-            location.reload();
-        });
-    };
-
-// ==============================================================
-    // 3. FIRESTORE KÉTIRÁNYÚ SZINKRON & FELHASZNÁLÓI IZOLÁCIÓ
-    // ==============================================================
-    let isIncomingSync = false;
-    let syncDebounceTimer = null;
-
-    window.handleLogout = async function() {
-        window.customConfirm(window.t('confirmTitle'), "Biztosan kijelentkezel a fiókodból?", async () => {
-            if (activeUnsubscribe) activeUnsubscribe();
             
-            // Memória azonnali kiürítése kilépéskor
             window.currentUserId = null;
             window.isAppReady = false;
             window.profiles = [];
@@ -152,13 +132,17 @@ try {
         });
     };
 
+    // 3. FIRESTORE KÉTIRÁNYÚ SZINKRON & FELHASZNÁLÓI IZOLÁCIÓ
+    let isIncomingSync = false;
+    let syncDebounceTimer = null;
+
     onAuthStateChanged(auth, async (user) => {
         const screen = document.getElementById('auth-screen');
         const syncText = document.getElementById('sync-text');
         const syncStatus = document.getElementById('sync-status');
 
         if (user) {
-            window.currentUserId = user.uid; // Beállítjuk az aktív felhasználó egyedi azonosítóját
+            window.currentUserId = user.uid;
             if (screen) screen.classList.add('hidden');
             const userRef = doc(db, 'felhasznalok', user.uid);
 
@@ -168,7 +152,6 @@ try {
                 if (snap.metadata.hasPendingWrites) return;
 
                 if (snap.exists() && snap.data().payload) {
-                    // MEGLÉVŐ FELHASZNÁLÓ: Betöltjük a saját felhős adatait
                     try {
                         isIncomingSync = true;
                         const parsed = JSON.parse(snap.data().payload);
@@ -185,7 +168,6 @@ try {
                         setTimeout(() => { isIncomingSync = false; }, 400);
                     }
                 } else {
-                    // ÚJ FIÓK: Még nincs adata a felhőben -> Tiszta új profilt indítunk a nevével!
                     const prefix = `fitplan_${user.uid}_`;
                     const localProfs = localStorage.getItem(`${prefix}profiles`);
                     const localData = localStorage.getItem(`${prefix}profile_data`);
@@ -201,12 +183,12 @@ try {
                         } catch (e) {}
                     }
 
-                    // Tiszta profil létrehozása az új felhasználónak
-                    window.initFreshUser(user);
+                    if (typeof window.initFreshUser === 'function') {
+                        window.initFreshUser(user);
+                    }
                 }
             });
 
-            // Felhőmentő függvény az aktuális felhasználóhoz
             window.syncToFirebase = function() {
                 if (isIncomingSync || !window.currentUserId) return;
                 clearTimeout(syncDebounceTimer);
@@ -226,7 +208,6 @@ try {
                 syncStatus.className = 'px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium flex items-center gap-1.5 border border-emerald-300 dark:border-emerald-800/60';
             }
         } else {
-            // Nincs bejelentkezve: kijelentkezési állapot
             window.currentUserId = null;
             window.isAppReady = false;
             if (screen) screen.classList.remove('hidden');
@@ -235,7 +216,6 @@ try {
                 syncStatus.className = 'hidden sm:flex px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-950 text-slate-500 text-[10px] font-medium items-center gap-1.5 border border-slate-200 dark:border-slate-800';
             }
         }
-    });
     });
 
 } catch (err) {
