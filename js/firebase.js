@@ -11,7 +11,6 @@ import {
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-// Firebase Projekt Konfiguráció
 const firebaseConfig = {
     apiKey: "AIzaSyCiT4KQNBoPI-r47zGwQVTCVV5CZBUXcJQ",
     authDomain: "zsombor-etrend.firebaseapp.com",
@@ -30,11 +29,9 @@ try {
     const googleProvider = new GoogleAuthProvider();
     let activeUnsubscribe = null;
 
-    window.authMode = 'login'; // 'login' | 'register'
+    window.authMode = 'login';
 
-    // ==============================================================
-    // 1. CLOUD STORAGE FÁJLFELTÖLTŐ MOTOR (DOKUMENTUMOKHOZ)
-    // ==============================================================
+    // 1. TÁROLÓ (STORAGE)
     window.uploadFileToFirebaseStorage = async function(file) {
         if (!auth.currentUser) throw new Error("A feltöltéshez be kell jelentkezned!");
         const uid = auth.currentUser.uid;
@@ -45,9 +42,7 @@ try {
         return await getDownloadURL(snapshot.ref);
     };
 
-    // ==============================================================
-    // 2. AUTHENTICATION (GOOGLE, E-MAIL, JELSZÓ & KIJELENTKEZÉS)
-    // ==============================================================
+    // 2. BEJELENTKEZÉS ÉS HITELOSÍTÉS
     window.handleGoogleSignIn = async function() {
         try {
             await signInWithPopup(auth, googleProvider);
@@ -121,17 +116,18 @@ try {
         }
     };
 
+    // KIJELENTKEZÉS ÉS MEMÓRIA TÖRLÉS
     window.handleLogout = async function() {
         window.customConfirm(window.t('confirmTitle'), "Biztosan kijelentkezel a fiókodból?", async () => {
             if (activeUnsubscribe) activeUnsubscribe();
+            
+            // Az oldal azonnali újratöltése garantálja, hogy a böngésző memóriája teljesen kiürüljön
             await signOut(auth);
             location.reload();
         });
     };
 
-    // ==============================================================
-    // 3. FIRESTORE KÉTIRÁNYÚ SZINKRON & HUROKVÉDELEM
-    // ==============================================================
+    // 3. FIRESTORE KÉTIRÁNYÚ SZINKRON & FELHASZNÁLÓI IZOLÁCIÓ
     let isIncomingSync = false;
     let syncDebounceTimer = null;
 
@@ -141,57 +137,66 @@ try {
         const syncStatus = document.getElementById('sync-status');
 
         if (user) {
+            window.currentUserId = user.uid; // Rögzítjük ki jelentkezett be
             if (screen) screen.classList.add('hidden');
             const userRef = doc(db, 'felhasznalok', user.uid);
 
             if (activeUnsubscribe) activeUnsubscribe();
 
-            // Valós idejű felhőfigyelő
             activeUnsubscribe = onSnapshot(userRef, { includeMetadataChanges: true }, (snap) => {
-                // Ha a módosítás ebből a böngészőből indult, nem dolgozzuk fel újra
                 if (snap.metadata.hasPendingWrites) return;
 
                 if (snap.exists() && snap.data().payload) {
+                    // MEGLÉVŐ FIÓK: Betöltjük a felhőből a saját adatait
                     try {
                         isIncomingSync = true;
                         const parsed = JSON.parse(snap.data().payload);
                         if (parsed.profiles && parsed.profileData) {
                             window.profiles = parsed.profiles;
                             window.profileData = parsed.profileData;
-                            // skipSave = true: nem indítunk visszamentési hurkot
-                            window.switchProfile(window.currentProfileId || window.profiles[0].id, true);
+                            window.currentProfileId = parsed.currentProfileId || (parsed.profiles[0] ? parsed.profiles[0].id : null);
+                            window.isAppReady = true;
+                            window.switchProfile(window.currentProfileId, true);
                         }
                     } catch (e) {
                         console.error("Szinkronizációs beolvasási hiba:", e);
                     } finally {
                         setTimeout(() => { isIncomingSync = false; }, 400);
                     }
+                } else {
+                    // ÚJ FIÓK (Még nincs felhő adat): Tiszta profilt kap
+                    if (typeof window.initFreshUser === 'function') {
+                        window.initFreshUser(user);
+                    }
                 }
             });
 
-            // 600 ms-os késleltetett felhőmentő függvény
+            // FELHŐBE MENTÉS (CSAK AZ ADOTT FIÓKBA)
             window.syncToFirebase = function() {
-                if (isIncomingSync) return;
+                if (isIncomingSync || !window.currentUserId) return;
                 clearTimeout(syncDebounceTimer);
                 syncDebounceTimer = setTimeout(() => {
                     const payload = JSON.stringify({
                         profiles: window.profiles,
-                        profileData: window.profileData
+                        profileData: window.profileData,
+                        currentProfileId: window.currentProfileId
                     });
                     setDoc(userRef, { payload, email: user.email, updatedAt: Date.now() }, { merge: true })
                         .catch(err => console.warn("Firebase mentési hiba:", err));
                 }, 600);
             };
 
-            // Zöld „Felhő Aktív” státuszjelző
             if (syncText && syncStatus) {
                 syncText.textContent = 'Felhő Aktív';
                 syncStatus.className = 'px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium flex items-center gap-1.5 border border-emerald-300 dark:border-emerald-800/60';
             }
         } else {
+            // NINCS BEJELENTKEZVE
+            window.currentUserId = null;
+            window.isAppReady = false;
             if (screen) screen.classList.remove('hidden');
             if (syncText && syncStatus) {
-                syncText.textContent = 'Helyi';
+                syncText.textContent = 'Kijelentkezve';
                 syncStatus.className = 'hidden sm:flex px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-950 text-slate-500 text-[10px] font-medium items-center gap-1.5 border border-slate-200 dark:border-slate-800';
             }
         }
