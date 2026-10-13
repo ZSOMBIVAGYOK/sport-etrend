@@ -2,11 +2,11 @@
 // FitPlan Pro - Központi Állapotkezelő & Adatvédelem (js/state.js)
 // ==============================================================
 
-// Betöltési zár (race-condition és véletlen üres felülírás ellen)
 window.isAppReady = false;
+window.currentUserId = null; // Ide mentjük a bejelentkezett felhasználó azonosítóját
 
 // Alkalmazás mód és fülek állapota
-window.currentAppMode = 'diet'; // 'diet' | 'workout' | 'recovery' | 'gear' | 'docs'
+window.currentAppMode = 'diet';
 window.currentWeekOffset = 0;
 window.calCurrentYear = new Date().getFullYear();
 window.calCurrentMonth = new Date().getMonth();
@@ -148,7 +148,7 @@ window.DEFAULT_GEAR_ITEMS = [
         image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80',
         desc: 'Elsődleges aszfaltos edzőcipő. Élettartam: 800 km vagy 90 napos átvizsgálás.',
         intervalDays: 90,
-        lastMaintained: Date.now() - (1000 * 60 * 60 * 24 * 15) // 15 napja karbantartva
+        lastMaintained: Date.now() - (1000 * 60 * 60 * 24 * 15)
     },
     {
         id: 'gear-2',
@@ -157,7 +157,7 @@ window.DEFAULT_GEAR_ITEMS = [
         image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=400&q=80',
         desc: 'Lánctisztítás, zsírtalanítás és waxolás 30 naponta.',
         intervalDays: 30,
-        lastMaintained: Date.now() - (1000 * 60 * 60 * 24 * 28) // 28 napja, hamarosan esedékes
+        lastMaintained: Date.now() - (1000 * 60 * 60 * 24 * 28)
     }
 ];
 
@@ -168,7 +168,6 @@ window.profiles = [];
 window.currentProfileId = null;
 window.profileData = {};
 
-// Aktív profil munkamemóriája
 window.meals = [];
 window.documents = [];
 window.daysStore = {};
@@ -182,7 +181,7 @@ window.gearCategories = [];
 window.gearItems = [];
 
 // ==========================================
-// DEFENZÍV NAPI ADAT ELÉRÉS (DATA GUARD)
+// DEFENZÍV NAPI ADAT ELÉRÉS
 // ==========================================
 window.getDayData = function(dateKey) {
     if (!window.daysStore) window.daysStore = {};
@@ -199,7 +198,6 @@ window.getDayData = function(dateKey) {
     }
 
     const day = window.daysStore[dateKey];
-    // Mély-összefésülés garantálja, hogy egyetlen hiányzó mező se dobjon hibát:
     if (!Array.isArray(day.meals) || day.meals.length < 6) {
         day.meals = [null, null, null, null, null, null];
     }
@@ -217,9 +215,6 @@ window.getDayData = function(dateKey) {
     return day;
 };
 
-// ==========================================
-// DÁTUM & NAPTÁRI SEGÉDFÜGGVÉNYEK
-// ==========================================
 window.formatDateKey = function(d) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -274,9 +269,6 @@ window.jumpToWeekOfDate = function(dateKey) {
     if (typeof window.renderAllActiveViews === 'function') window.renderAllActiveViews();
 };
 
-// ==========================================
-// TÉMAKEZELÉS (VILÁGOS / SÖTÉT)
-// ==========================================
 window.initTheme = function() {
     const saved = localStorage.getItem('fitplan_theme') || 'dark';
     window.setAppTheme(saved);
@@ -303,9 +295,6 @@ window.setAppTheme = function(theme) {
     }
 };
 
-// ==========================================
-// PROFILKEZELŐ & ADATOK BETÖLTÉSE
-// ==========================================
 window.updateProfileUI = function() {
     const prof = window.profiles.find(p => p.id === window.currentProfileId);
     if (!prof) return;
@@ -339,7 +328,6 @@ window.switchProfile = function(id, skipSave = false) {
     window.currentProfileId = id;
     const dat = window.profileData[id] || {};
 
-    // Defenzív betöltés biztonsági alapértelmezésekkel
     window.meals = dat.meals || [...window.DEFAULT_MEALS];
     window.documents = dat.documents || [];
     window.daysStore = dat.days || {};
@@ -357,20 +345,62 @@ window.switchProfile = function(id, skipSave = false) {
     if (!skipSave) {
         window.saveData();
     } else {
-        localStorage.setItem('fitplan_current_profile', id);
+        const prefix = window.currentUserId ? `fitplan_${window.currentUserId}_` : 'fitplan_guest_';
+        localStorage.setItem(`${prefix}current_profile`, id);
     }
 
     window.renderAllActiveViews();
     if (typeof window.closeModal === 'function') window.closeModal('profiles-modal');
 };
 
+// ==========================================
+// TISZTA ÚJ SPORTOLÓI PROFIL INICIALIZÁLÁSA
+// ==========================================
+window.initFreshUser = function(user) {
+    const defaultId = 'prof-' + Date.now();
+    const userName = (user && user.displayName) ? user.displayName : 'Új Sportoló';
+    const userImg = (user && user.photoURL) ? user.photoURL : '';
+
+    window.profiles = [{
+        id: defaultId,
+        name: userName,
+        gender: 'Férfi',
+        birthdate: '2000-01-01',
+        sport: 'Sportoló',
+        image: userImg,
+        height: 180,
+        weight: 75,
+        targetWeight: 80,
+        bodyFat: 14,
+        restingHr: 60
+    }];
+
+    window.profileData = {};
+    window.profileData[defaultId] = {
+        meals: [...window.DEFAULT_MEALS],
+        documents: [],
+        days: {},
+        exerciseCategories: [...window.DEFAULT_EXERCISE_CATEGORIES],
+        workoutExercises: [...window.DEFAULT_WORKOUT_EXERCISES],
+        programCategories: [...window.DEFAULT_PROGRAM_CATEGORIES],
+        workoutPrograms: [...window.DEFAULT_WORKOUT_PROGRAMS],
+        recRoutineCategories: [...window.DEFAULT_REC_ROUTINE_CATEGORIES],
+        recoveryRoutines: [...window.DEFAULT_RECOVERY_ROUTINES],
+        gearCategories: [...window.DEFAULT_GEAR_CATEGORIES],
+        gearItems: [...window.DEFAULT_GEAR_ITEMS]
+    };
+
+    window.currentProfileId = defaultId;
+    window.isAppReady = true;
+    window.switchProfile(defaultId, false);
+};
+
+// ==========================================
+// MENTÉS: MINDIG AZ ADOTT FELHASZNÁLÓ UID-JÉHEZ KÖTVE
+// ==========================================
 window.saveData = function() {
-    // VÉDELMI ZÁR: Ha az app még nem töltődött be teljesen, szigorúan tilos menteni
-    if (!window.isAppReady) return;
+    if (!window.isAppReady || !window.currentProfileId) return;
 
-    if (!window.currentProfileId) return;
-
-    // Memória állapot áthelyezése a profilData-ba
     window.profileData[window.currentProfileId] = {
         meals: window.meals,
         documents: window.documents,
@@ -385,85 +415,27 @@ window.saveData = function() {
         gearItems: window.gearItems
     };
 
-    // Helyi mentés készítése
     try {
-        const payload = {
-            profiles: window.profiles,
-            profileData: window.profileData
-        };
-        localStorage.setItem('fitplan_profiles', JSON.stringify(window.profiles));
-        localStorage.setItem('fitplan_profile_data', JSON.stringify(window.profileData));
-        localStorage.setItem('fitplan_current_profile', window.currentProfileId);
-
-        // Auto-Snapshot biztonsági másolat az utolsó működő állapotról
-        localStorage.setItem('fitplan_last_known_good_backup', JSON.stringify(payload));
+        const prefix = window.currentUserId ? `fitplan_${window.currentUserId}_` : 'fitplan_guest_';
+        localStorage.setItem(`${prefix}profiles`, JSON.stringify(window.profiles));
+        localStorage.setItem(`${prefix}profile_data`, JSON.stringify(window.profileData));
+        localStorage.setItem(`${prefix}current_profile`, window.currentProfileId);
     } catch (e) {
-        console.warn("Helyi mentési hiba (tárhely megtelt?):", e);
+        console.warn("Helyi mentési hiba:", e);
     }
 
-    // Felhő szinkron meghívása, ha létezik
     if (typeof window.syncToFirebase === 'function') {
         window.syncToFirebase();
     }
 };
 
 window.loadLocalData = function() {
-    try {
-        const rawProfs = localStorage.getItem('fitplan_profiles');
-        const rawData = localStorage.getItem('fitplan_profile_data');
-        const savedCurr = localStorage.getItem('fitplan_current_profile');
-
-        if (rawProfs && rawData) {
-            window.profiles = JSON.parse(rawProfs);
-            window.profileData = JSON.parse(rawData);
-            window.currentProfileId = savedCurr || (window.profiles[0] ? window.profiles[0].id : null);
-        }
-    } catch (e) {
-        console.error("Hiba a helyi adatok betöltésekor:", e);
-    }
-
-    // Ha még nincsenek profilok (első indítás)
-    if (!window.profiles || window.profiles.length === 0) {
-        const defaultId = 'prof-default';
-        window.profiles = [{
-            id: defaultId,
-            name: 'Zsombor',
-            gender: 'Férfi',
-            birthdate: '2000-01-01',
-            sport: 'Sportoló',
-            image: '',
-            height: 180,
-            weight: 78,
-            targetWeight: 80,
-            bodyFat: 14,
-            restingHr: 58
-        }];
-
-        window.profileData = {};
-        window.profileData[defaultId] = {
-            meals: [...window.DEFAULT_MEALS],
-            documents: [],
-            days: {},
-            exerciseCategories: [...window.DEFAULT_EXERCISE_CATEGORIES],
-            workoutExercises: [...window.DEFAULT_WORKOUT_EXERCISES],
-            programCategories: [...window.DEFAULT_PROGRAM_CATEGORIES],
-            workoutPrograms: [...window.DEFAULT_WORKOUT_PROGRAMS],
-            recRoutineCategories: [...window.DEFAULT_REC_ROUTINE_CATEGORIES],
-            recoveryRoutines: [...window.DEFAULT_RECOVERY_ROUTINES],
-            gearCategories: [...window.DEFAULT_GEAR_CATEGORIES],
-            gearItems: [...window.DEFAULT_GEAR_ITEMS]
-        };
-        window.currentProfileId = defaultId;
-    }
-
-    // App kész, feloldjuk a mentési zárat
-    window.isAppReady = true;
-    window.switchProfile(window.currentProfileId, true);
+    // A helyi betöltést most már a Firebase fájl vezérli az azonosító alapján!
 };
 
-// ==============================================================
+// ==========================================
 // BIZTONSÁGI MENTÉS (1-KATTINTÁSOS JSON EXPORT & IMPORT)
-// ==============================================================
+// ==========================================
 window.exportDataBackup = function() {
     try {
         const exportObj = {
@@ -613,5 +585,5 @@ window.customConfirm = function(title, msg, onOk) {
 window.addEventListener('DOMContentLoaded', () => {
     window.initTheme();
     if (typeof window.applyTranslations === 'function') window.applyTranslations();
-    window.loadLocalData();
+    // A betöltést most már a firebase.js irányítja, amint kiderül, ki jelentkezett be!
 });
