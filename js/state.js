@@ -180,6 +180,7 @@ window.recRoutineCategories = [];
 window.recoveryRoutines = [];
 window.gearCategories = [];
 window.gearItems = [];
+window.personalRecords = Array.isArray(dat.personalRecords) ? dat.personalRecords : [];
 
 // ==========================================
 // DEFENZÍV NAPI ADAT ELÉRÉS (DATA GUARD)
@@ -383,6 +384,7 @@ window.saveData = function() {
         recoveryRoutines: window.recoveryRoutines,
         gearCategories: window.gearCategories,
         gearItems: window.gearItems
+        personalRecords: window.personalRecords || []
     };
 
     // Helyi mentés készítése
