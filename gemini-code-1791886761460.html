@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="hu" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPlan Pro - Étrend, Edzés, Recovery, Egészség & Eszközök</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' },
+                        bluebrand: { 50: '#eff6ff', 100: '#dbeafe', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' },
+                        redbrand: { 50: '#fef2f2', 100: '#fee2e2', 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 900: '#7f1d1d' },
+                        purplebrand: { 50: '#faf5ff', 100: '#f3e8ff', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce', 900: '#581c87' },
+                        orangebrand: { 50: '#fff7ed', 100: '#ffedd5', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 900: '#7c2d12' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- HTML5 QR / Vonalkód Leolvasó Könyvtár -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 20px; width: 20px;
+            border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -8px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #64748b; border-radius: 2px; }
+        #barcode-reader video, #recipe-barcode-reader video { border-radius: 1rem; object-fit: cover; }
+
+        /* Körgyűrű animáció */
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Organikus izomtérkép stílusok */
+        .muscle-part {
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            fill: #94a3b8;
+            stroke: #64748b;
+            stroke-width: 0.7;
+        }
+        .muscle-part:hover {
+            fill: #60a5fa;
+            stroke: #2563eb;
+            filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.4));
+        }
+        .muscle-part.active {
+            fill: #2563eb !important;
+            stroke: #1d4ed8 !important;
+            filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.8));
+        }
+        .dark .muscle-part {
+            fill: #334155;
+            stroke: #1e293b;
+        }
+        .dark .muscle-part:hover {
+            fill: #60a5fa;
+            stroke: #93c5fd;
+        }
+        .dark .muscle-part.active {
+            fill: #38bdf8 !important;
+            stroke: #bae6fd !important;
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.9));
+        }
+
+        /* Heti hőtérkép szintek */
+        .heat-0 { fill: #e2e8f0; stroke: #cbd5e1; }
+        .dark .heat-0 { fill: #1e293b; stroke: #0f172a; }
+        .heat-1 { fill: #86efac !important; stroke: #22c55e !important; }
+        .dark .heat-1 { fill: #15803d !important; stroke: #4ade80 !important; }
+        .heat-2 { fill: #38bdf8 !important; stroke: #0284c7 !important; }
+        .dark .heat-2 { fill: #0369a1 !important; stroke: #38bdf8 !important; }
+        .heat-3 { fill: #c084fc !important; stroke: #9333ea !important; }
+        .dark .heat-3 { fill: #7e22ce !important; stroke: #e9d5ff !important; filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.7)); }
+
+        /* Recovery fáradtsági szintek */
+        .fatigue-0 { fill: #10b981 !important; stroke: #059669 !important; }
+        .fatigue-1 { fill: #fbbf24 !important; stroke: #d97706 !important; }
+        .fatigue-2 { fill: #f97316 !important; stroke: #c2410c !important; }
+        .fatigue-3 { fill: #ef4444 !important; stroke: #b91c1c !important; filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.8)); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white pb-12">
+
+    <!-- AUTHENTICATION OVERLAY -->
+    <div id="auth-screen" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-brand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-bluebrand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-orangebrand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-purplebrand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden my-auto text-slate-900 dark:text-white">
+            <div class="h-2 w-full bg-gradient-to-r from-emerald-500 via-blue-500 via-purple-500 via-orange-500 to-rose-500"></div>
+
+            <div class="p-6 sm:p-8">
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-bluebrand-600 to-orangebrand-500 shadow-xl shadow-brand-500/20 mb-3 text-white text-2xl font-black">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h2 class="text-2xl font-black tracking-tight">FitPlan Pro</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="appSubtitle">Sportolói Étrend, Edzés, Recovery, Egészség & Eszközök</p>
+
+                    <div class="flex flex-wrap items-center justify-center gap-1.5 mt-3">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 dark:bg-brand-950 border border-brand-300 dark:border-brand-800/60 text-brand-700 dark:text-brand-400" data-i18n="menuDiet">Étrend</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-bluebrand-100 dark:bg-bluebrand-950 border border-bluebrand-300 dark:border-bluebrand-800/60 text-bluebrand-700 dark:text-bluebrand-400" data-i18n="menuWorkout">Edzés</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purplebrand-100 dark:bg-purplebrand-950 border border-purplebrand-300 dark:border-purplebrand-800/60 text-purplebrand-700 dark:text-purplebrand-400" data-i18n="menuRecovery">Recovery</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orangebrand-100 dark:bg-orangebrand-950 border border-orangebrand-300 dark:border-orangebrand-800/60 text-orangebrand-700 dark:text-orangebrand-400" data-i18n="menuGear">Eszközök</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-redbrand-100 dark:bg-redbrand-950 border border-redbrand-300 dark:border-redbrand-800/60 text-redbrand-700 dark:text-redbrand-400" data-i18n="menuDocs">Egészség</span>
+                    </div>
+                </div>
+
+                <button onclick="handleGoogleSignIn()" type="button" class="w-full py-3 px-4 bg-white hover:bg-slate-100 text-slate-900 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-3 shadow-lg border border-slate-200 dark:border-transparent transition duration-200 cursor-pointer active:scale-[0.98]">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.97 0 12s.45 3.84 1.24 5.42l4.04-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span data-i18n="googleLogin">Folytatás Google-fiókkal</span>
+                </button>
+
+                <div class="relative my-5 flex items-center justify-center">
+                    <div class="border-t border-slate-300 dark:border-slate-800 w-full"></div>
+                    <span class="bg-white dark:bg-slate-900 px-3 text-[11px] text-slate-500 uppercase tracking-wider font-semibold" data-i18n="orEmail">vagy e-mail címmel</span>
+                </div>
+
+                <div class="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-300 dark:border-slate-800 mb-4">
+                    <button id="auth-tab-login" onclick="setAuthMode('login')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition bg-brand-600 text-white shadow" data-i18n="loginTab">Bejelentkezés</button>
+                    <button id="auth-tab-register" onclick="setAuthMode('register')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white" data-i18n="registerTab">Új Regisztráció</button>
+                </div>
+
+                <div id="auth-error-banner" class="hidden mb-4 p-2.5 rounded-xl bg-redbrand-100 dark:bg-redbrand-950/80 border border-redbrand-300 dark:border-redbrand-800 text-redbrand-800 dark:text-redbrand-300 text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
+                    <span id="auth-error-text"></span>
+                </div>
+
+                <form onsubmit="handleEmailAuth(event)" class="space-y-3 text-xs">
+                    <div id="auth-name-group" class="hidden">
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="nameLabel">Neved / Beceneved</label>
+                        <input type="text" id="auth-name" placeholder="pl. Zsombor" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="emailLabel">E-mail Cím</label>
+                        <input type="email" id="auth-email" required placeholder="pelda@email.com" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-slate-700 dark:text-slate-300 font-semibold" data-i18n="passwordLabel">Jelszó</label>
+                            <button type="button" id="auth-forgot-btn" onclick="handlePasswordReset()" class="text-[11px] text-brand-600 dark:text-brand-400 hover:underline cursor-pointer" data-i18n="forgotPassword">Elfelejtetted?</button>
+                        </div>
+                        <input type="password" id="auth-password" required placeholder="Legalább 6 karakter" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div id="auth-confirm-group" class="hidden">
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="passwordConfirmLabel">Jelszó Megerősítése</label>
+                        <input type="password" id="auth-password-confirm" placeholder="Írd be újra a jelszavad" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-gradient-to-r from-brand-600 via-bluebrand-600 to-orangebrand-500 hover:opacity-95 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-brand-500/20 transition cursor-pointer mt-2" data-i18n="loginBtn">Bejelentkezés</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEJLÉC ÉS DINAMIKUS MENÜSOR -->
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-300" id="main-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+            
+            <!-- App Választó Dropdown Dinamikus Logóval & Ikonnal -->
+            <div class="relative">
+                <button onclick="toggleAppMenu(event)" class="flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800/50 p-1.5 pr-3 rounded-2xl transition cursor-pointer group">
+                    <div id="app-logo-bg" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-brand-500/20 transition-all duration-300">
+                        <i id="app-logo-icon" class="fa-solid fa-utensils text-slate-950"></i>
+                    </div>
+                    <div class="hidden sm:block text-left">
+                        <h1 id="app-title" class="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-white transition-colors">FitPlan Pro</h1>
+                        <p id="app-subtitle" class="text-xs text-brand-600 dark:text-brand-400 font-medium transition-colors" data-i18n="dietSubtitle">Sportolói Étrend</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-slate-400 dark:text-slate-500 text-xs ml-1 group-hover:text-slate-900 dark:group-hover:text-white transition"></i>
+                </button>
+
+                <!-- Lenyíló Módválasztó -->
+                <div id="app-selector-dropdown" class="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden flex flex-col overflow-hidden z-50 text-slate-900 dark:text-white">
+                    <button onclick="switchAppMode('diet')" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left cursor-pointer">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-slate-950 text-sm"><i class="fa-solid fa-utensils"></i></div>
+                        <div>
+                            <div class="font-bold text-sm" data-i18n="menuDiet">FitPlan Étrend</div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="menuDietDesc">Tervező és receptek</div>
+                        </div>
+                    </button>
+                    <div class="h-px w-full bg-slate-200 dark:bg-slate-800"></div>
+                    <button onclick="switchAppMode('workout')" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left cursor-pointer">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-slate-950 text-sm"><i class="fa-solid fa-person-running"></i></div>
+                        <div>
+                            <div class="font-bold text-sm" data-i18n="menuWorkout">Edzésnapló</div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="menuWorkoutDesc">Gyakorlatok, programok & Garmin</div>
+                        </div>
+                    </button>
+                    <div class="h-px w-full bg-slate-200 dark:bg-slate-800"></div>
+                    <button onclick="switchAppMode('recovery')" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left cursor-pointer">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purplebrand-600 to-fuchsia-400 flex items-center justify-center text-white text-sm"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div>
+                            <div class="font-bold text-sm" data-i18n="menuRecovery">Recovery & Mérők</div>
+                            <div class="text-[10px] text-purplebrand-500 dark:text-purplebrand-400" data-i18n="menuRecoveryDesc">Gyakorlatsorok & Fáradtság térkép</div>
+                        </div>
+                    </button>
+                    <div class="h-px w-full bg-slate-200 dark:bg-slate-800"></div>
+                    <button onclick="switchAppMode('gear')" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left cursor-pointer">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-orangebrand-500 to-amber-400 flex items-center justify-center text-slate-950 text-sm"><i class="fa-solid fa-toolbox"></i></div>
+                        <div>
+                            <div class="font-bold text-sm" data-i18n="menuGear">Eszközök & Karbantartás</div>
+                            <div class="text-[10px] text-orangebrand-600 dark:text-orangebrand-400" data-i18n="menuGearDesc">Felszerelés & Fogyó körgyűrűk</div>
+                        </div>
+                    </button>
+                    <div class="h-px w-full bg-slate-200 dark:bg-slate-800"></div>
+                    <button onclick="switchAppMode('docs')" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left cursor-pointer">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-redbrand-600 to-rose-400 flex items-center justify-center text-white text-sm"><i class="fa-solid fa-file-lines"></i></div>
+                        <div>
+                            <div class="font-bold text-sm" data-i18n="menuDocs">Dokumentumok</div>
+                            <div class="text-[10px] text-redbrand-500 dark:text-redbrand-400" data-i18n="menuDocsDesc">Vérvétel, InBody, tervek</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fő Navigációs Fülek (Étrend) -->
+            <nav id="diet-nav" class="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-950 p-1 rounded-xl border border-slate-300 dark:border-slate-800 transition-all">
+                <button id="tab-planner-btn" onclick="switchTab('planner')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-brand-600 text-white shadow-md cursor-pointer">
+                    <i class="fa-regular fa-calendar-days sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="tabPlanner">Heti Tervező</span>
+                </button>
+                <button id="tab-month-btn" onclick="switchTab('month')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer">
+                    <i class="fa-solid fa-calendar-week sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="calView">Havi Nézet</span>
+                </button>
+                <button id="tab-library-btn" onclick="switchTab('library')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer">
+                    <i class="fa-solid fa-book-open sm:mr-1.5"></i><span class="hidden sm:inline" data-i18n="tabLibrary">Ételkönyvtár</span>
+                </button>
+            </nav>
+
+            <!-- Fő Navigációs Fülek (Edzés - 4 Fül) -->
+            <nav id="workout-nav" class="hidden flex items-center gap-1 bg-slate-200/60 dark:bg-slate-950 p-1 rounded-xl border border-bluebrand-300 dark:border-bluebrand-900/50 transition-all">
+                <button id="w-tab-planner-btn" onclick="switchWorkoutTab('planner')" class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-bluebrand-600 text-white shadow-md cursor-pointer">
+                    <i class="fa-regular fa-calendar-days sm:mr-1"></i><span class="hidden sm:inline" data-i18n="tabWorkoutPlanner">Heti Edzések</span>
+                </button>
+                <button id="w-tab-month-btn" onclick="switchWorkoutTab('month')" class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer">
+                    <i class="fa-solid fa-calendar-week sm:mr-1"></i><span class="hidden sm:inline" data-i18n="calView">Havi Nézet</span>
+                </button>
+                <button id="w-tab-programs-btn" onclick="switchWorkoutTab('programs')" class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer">
+                    <i class="fa-solid fa-layer-group sm:mr-1"></i><span class="hidden sm:inline" data-i18n="tabWorkoutPrograms">Programok</span>
+                </button>
+                <button id="w-tab-exercises-btn" onclick="switchWorkoutTab('exercises')" class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer">
+                    <i class="fa-solid fa-dumbbell sm:mr-1"></i><span class="hidden sm:inline" data-i18n="tabExercises">Gyakorlatok</span>
+                </button>
+            </nav>
+
+            <!-- Fő Navigációs Fülek (Recovery - 3 Fül) -->
+            <nav id="recovery-nav" class="hidden flex items-center gap-1 bg-slate-200/60 dark:bg-slate-950 p-1 rounded-xl border border-purplebrand-300 dark:border-purplebrand-900/50 transition-all">
+                <button id="r-tab-planner-btn" onclick="switchRecoveryTab('planner')" class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-purplebrand-600 text-white shadow-md cursor-pointer">
+                    <i class="fa-solid fa-circle-notch sm:mr-1"></i><span class="hidden sm:inline" data-i18n="tabRecoveryPlanner">Heti Recovery</span>
+                </button>
+                <button id="r-tab-month-btn" onclick="switchRecoveryTab('month')" class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer">
+                    <i class="fa-solid fa-calendar-week sm:mr-1"></i><span class="hidden sm:inline" data-i18n="calView">Havi Nézet</span>
+                </button>
+                <button id="r-tab-routines-btn" onclick="switchRecoveryTab('routines')" class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-200 cursor-pointer">
+                    <i class="fa-solid fa-spa sm:mr-1"></i><span class="hidden sm:inline" data-i18n="tabRecoveryRoutines">Gyakorlatsorok</span>
+                </button>
+            </nav>
+
+            <!-- Fő Navigációs Fülek (Eszközök) -->
+            <nav id="gear-nav" class="hidden flex items-center gap-1 bg-slate-200/60 dark:bg-slate-950 p-1 rounded-xl border border-orangebrand-300 dark:border-orangebrand-900/50 transition-all">
+                <div class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-orangebrand-500 text-slate-950 font-bold shadow-md flex items-center gap-1.5">
+                    <i class="fa-solid fa-toolbox"></i><span data-i18n="menuGear">Eszközök & Karbantartás</span>
+                </div>
+            </nav>
+
+            <!-- Fő Navigációs Fülek (Dokumentumok) -->
+            <nav id="docs-nav" class="hidden flex items-center gap-1 bg-slate-200/60 dark:bg-slate-950 p-1 rounded-xl border border-redbrand-300 dark:border-redbrand-900/50 transition-all">
+                <div class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-redbrand-600 text-white shadow-md flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-medical"></i><span data-i18n="menuDocs">Dokumentumtár</span>
+                </div>
+            </nav>
+
+            <!-- Fejléc Jobb Oldali Gombok: JAVÍTOTT, FOLYAMATOSAN LÁTHATÓ EMBER NÉVVEL! -->
+            <div class="flex items-center gap-2">
+                <button onclick="openSettingsModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer" title="Beállítások / Settings">
+                    <i class="fa-solid fa-gear text-brand-600 dark:text-brand-400"></i>
+                    <span class="hidden xl:inline" data-i18n="settingsTitle">Beállítások</span>
+                </button>
+
+                <!-- PROFIL GOMB: A NÉV MINDIG LÁTHATÓ (NINCS HIDDEN LG:INLINE KIZÁRÁS!) -->
+                <button onclick="openProfilesModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold flex items-center gap-2 transition shadow-sm cursor-pointer">
+                    <img id="active-profile-img" src="" class="w-5 h-5 rounded-full object-cover hidden">
+                    <i id="active-profile-icon" class="fa-solid fa-user text-brand-600 dark:text-brand-400 text-xs"></i>
+                    <span id="active-profile-name" class="font-bold text-xs truncate max-w-[110px] text-slate-900 dark:text-white">Saját Profil</span>
+                </button>
+
+                <button onclick="handleLogout()" class="px-2.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-950/60 border border-slate-300 dark:border-slate-700 hover:border-red-400 dark:hover:border-red-800/50 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer" title="Kijelentkezés">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </button>
+                
+                <div id="diet-actions" class="flex items-center gap-2 transition-all">
+                    <button onclick="openWeeklyShoppingList()" class="px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 hover:bg-emerald-200 dark:hover:bg-emerald-900 border border-emerald-300 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-cart-shopping"></i><span class="hidden md:inline" data-i18n="weeklyShopping">Bevásárlás</span>
+                    </button>
+                </div>
+
+                <div id="workout-actions" class="hidden flex items-center gap-2 transition-all">
+                    <button onclick="openWorkoutLogModal()" class="px-3 py-1.5 rounded-xl bg-bluebrand-100 dark:bg-bluebrand-950/80 hover:bg-bluebrand-200 dark:hover:bg-bluebrand-900 border border-bluebrand-300 dark:border-bluebrand-800/60 text-bluebrand-800 dark:text-bluebrand-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-plus"></i><span class="hidden sm:inline" data-i18n="addWorkoutToday">Mai Edzés</span>
+                    </button>
+                </div>
+
+                <div id="recovery-actions" class="hidden flex items-center gap-2 transition-all">
+                    <button onclick="openRecoveryActivityModal()" class="px-3 py-1.5 rounded-xl bg-purplebrand-100 dark:bg-purplebrand-950/80 hover:bg-purplebrand-200 dark:hover:bg-purplebrand-900 border border-purplebrand-300 dark:border-purplebrand-800/60 text-purplebrand-800 dark:text-purplebrand-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-plus"></i><span class="hidden sm:inline" data-i18n="addRecoveryToday">Mai Aktivitás</span>
+                    </button>
+                </div>
+
+                <div id="gear-actions" class="hidden flex items-center gap-2 transition-all">
+                    <button onclick="openGearItemModal()" class="px-3 py-1.5 rounded-xl bg-orangebrand-100 dark:bg-orangebrand-950/80 hover:bg-orangebrand-200 dark:hover:bg-orangebrand-900 border border-orangebrand-300 dark:border-orangebrand-800/60 text-orangebrand-800 dark:text-orangebrand-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-plus"></i><span class="hidden sm:inline" data-i18n="newGearBtn">Új Eszköz</span>
+                    </button>
+                </div>
+
+                <div id="docs-actions" class="hidden flex items-center gap-2 transition-all">
+                    <button onclick="openUploadDocModal()" class="px-3 py-1.5 rounded-xl bg-redbrand-100 dark:bg-redbrand-950/80 hover:bg-redbrand-200 dark:hover:bg-redbrand-900 border border-redbrand-300 dark:border-redbrand-800/60 text-redbrand-800 dark:text-redbrand-400 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-file-circle-plus"></i><span class="hidden sm:inline" data-i18n="newDoc">Új Lelet</span>
+                    </button>
+                </div>
+
+                <div id="sync-status" class="px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 text-[11px] font-medium flex items-center gap-1.5 border border-slate-300 dark:border-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                    <span id="sync-text" class="hidden sm:inline">Kapcsolódás...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- ==================== 1. RÉSZ VÉGE ==================== -->
