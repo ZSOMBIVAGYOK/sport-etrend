@@ -2,11 +2,11 @@
 // FitPlan Pro - Központi Állapotkezelő & Adatvédelem (js/state.js)
 // ==============================================================
 
-// Betöltési zár (race-condition és véletlen üres felülírás ellen)
 window.isAppReady = false;
+window.currentUserId = null;
 
 // Alkalmazás mód és fülek állapota
-window.currentAppMode = 'diet'; // 'diet' | 'workout' | 'recovery' | 'gear' | 'docs'
+window.currentAppMode = 'diet';
 window.currentWeekOffset = 0;
 window.calCurrentYear = new Date().getFullYear();
 window.calCurrentMonth = new Date().getMonth();
@@ -148,7 +148,7 @@ window.DEFAULT_GEAR_ITEMS = [
         image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80',
         desc: 'Elsődleges aszfaltos edzőcipő. Élettartam: 800 km vagy 90 napos átvizsgálás.',
         intervalDays: 90,
-        lastMaintained: Date.now() - (1000 * 60 * 60 * 24 * 15) // 15 napja karbantartva
+        lastMaintained: Date.now() - (1000 * 60 * 60 * 24 * 15)
     },
     {
         id: 'gear-2',
@@ -157,7 +157,7 @@ window.DEFAULT_GEAR_ITEMS = [
         image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=400&q=80',
         desc: 'Lánctisztítás, zsírtalanítás és waxolás 30 naponta.',
         intervalDays: 30,
-        lastMaintained: Date.now() - (1000 * 60 * 60 * 24 * 28) // 28 napja, hamarosan esedékes
+        lastMaintained: Date.now() - (1000 * 60 * 60 * 24 * 28)
     }
 ];
 
@@ -168,7 +168,6 @@ window.profiles = [];
 window.currentProfileId = null;
 window.profileData = {};
 
-// Aktív profil munkamemóriája
 window.meals = [];
 window.documents = [];
 window.daysStore = {};
@@ -182,7 +181,7 @@ window.gearCategories = [];
 window.gearItems = [];
 
 // ==========================================
-// DEFENZÍV NAPI ADAT ELÉRÉS (DATA GUARD)
+// DEFENZÍV NAPI ADAT ELÉRÉS
 // ==========================================
 window.getDayData = function(dateKey) {
     if (!window.daysStore) window.daysStore = {};
@@ -199,7 +198,6 @@ window.getDayData = function(dateKey) {
     }
 
     const day = window.daysStore[dateKey];
-    // Mély-összefésülés garantálja, hogy egyetlen hiányzó mező se dobjon hibát:
     if (!Array.isArray(day.meals) || day.meals.length < 6) {
         day.meals = [null, null, null, null, null, null];
     }
@@ -217,9 +215,6 @@ window.getDayData = function(dateKey) {
     return day;
 };
 
-// ==========================================
-// DÁTUM & NAPTÁRI SEGÉDFÜGGVÉNYEK
-// ==========================================
 window.formatDateKey = function(d) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -274,9 +269,6 @@ window.jumpToWeekOfDate = function(dateKey) {
     if (typeof window.renderAllActiveViews === 'function') window.renderAllActiveViews();
 };
 
-// ==========================================
-// TÉMAKEZELÉS (VILÁGOS / SÖTÉT)
-// ==========================================
 window.initTheme = function() {
     const saved = localStorage.getItem('fitplan_theme') || 'dark';
     window.setAppTheme(saved);
@@ -303,9 +295,6 @@ window.setAppTheme = function(theme) {
     }
 };
 
-// ==========================================
-// PROFILKEZELŐ & ADATOK BETÖLTÉSE
-// ==========================================
 window.updateProfileUI = function() {
     const prof = window.profiles.find(p => p.id === window.currentProfileId);
     if (!prof) return;
@@ -339,7 +328,6 @@ window.switchProfile = function(id, skipSave = false) {
     window.currentProfileId = id;
     const dat = window.profileData[id] || {};
 
-    // Defenzív betöltés biztonsági alapértelmezésekkel
     window.meals = dat.meals || [...window.DEFAULT_MEALS];
     window.documents = dat.documents || [];
     window.daysStore = dat.days || {};
@@ -357,7 +345,8 @@ window.switchProfile = function(id, skipSave = false) {
     if (!skipSave) {
         window.saveData();
     } else {
-        localStorage.setItem('fitplan_current_profile', id);
+        const prefix = window.currentUserId ? `fitplan_${window.currentUserId}_` : 'fitplan_guest_';
+        localStorage.setItem(`${prefix}current_profile`, id);
     }
 
     window.renderAllActiveViews();
@@ -460,9 +449,10 @@ window.loadLocalData = function() {
         console.error("Hiba a helyi adatok betöltésekor:", e);
     }
 };
-// ==============================================================
+
+// ==========================================
 // BIZTONSÁGI MENTÉS (1-KATTINTÁSOS JSON EXPORT & IMPORT)
-// ==============================================================
+// ==========================================
 window.exportDataBackup = function() {
     try {
         const exportObj = {
