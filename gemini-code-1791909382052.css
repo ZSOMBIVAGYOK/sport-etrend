@@ -1,0 +1,182 @@
+/* ============================================================== */
+/* FitPlan Pro - Egyedi Stíluslap (css/style.css)                 */
+/* ============================================================== */
+
+/* Alap betűtípus és témaátmenet */
+body {
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Egyedi görgetősáv (Webkit) */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.4);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+}
+
+/* Interaktív Tartománycsúszkák (Bűnözés, Hidratáció, Súlyválasztó, RPE) */
+input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+}
+input[type=range]:focus {
+    outline: none;
+}
+/* Webkit (Chrome, Edge, Safari) */
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+    margin-top: -8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    border: 2px solid #3b82f6;
+    transition: transform 0.1s ease;
+}
+input[type=range]::-webkit-slider-thumb:active {
+    transform: scale(1.15);
+}
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    background: #64748b;
+    border-radius: 2px;
+}
+/* Firefox támogatás */
+input[type=range]::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    border: 2px solid #3b82f6;
+}
+input[type=range]::-moz-range-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    background: #64748b;
+    border-radius: 2px;
+}
+
+/* Vonalkód- és QR-olvasó kamera videó konténer */
+#barcode-reader video, 
+#recipe-barcode-reader video {
+    border-radius: 1rem;
+    object-fit: cover;
+}
+
+/* SVG Körgyűrű folyamat-animáció (Recovery & Karbantartás) */
+.progress-ring-circle {
+    transition: stroke-dashoffset 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+/* ============================================================== */
+/* ORGANIKUS ANATÓMIAI IZOMTÉRKÉP STÍLUSOK                        */
+/* ============================================================== */
+.muscle-part {
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    fill: #94a3b8;
+    stroke: #64748b;
+    stroke-width: 0.7;
+}
+.muscle-part:hover {
+    fill: #60a5fa;
+    stroke: #2563eb;
+    filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.4));
+}
+.muscle-part.active {
+    fill: #2563eb !important;
+    stroke: #1d4ed8 !important;
+    filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.8));
+}
+/* Sötét mód izom színek */
+.dark .muscle-part {
+    fill: #334155;
+    stroke: #1e293b;
+}
+.dark .muscle-part:hover {
+    fill: #60a5fa;
+    stroke: #93c5fd;
+}
+.dark .muscle-part.active {
+    fill: #38bdf8 !important;
+    stroke: #bae6fd !important;
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.9));
+}
+
+/* ============================================================== */
+/* HETI IZOMTERHELÉS HŐTÉRKÉP SZINTEK (WORKOUT)                   */
+/* ============================================================== */
+.heat-0 { 
+    fill: #e2e8f0; 
+    stroke: #cbd5e1; 
+}
+.dark .heat-0 { 
+    fill: #1e293b; 
+    stroke: #0f172a; 
+}
+.heat-1 { 
+    fill: #86efac !important; 
+    stroke: #22c55e !important; 
+}
+.dark .heat-1 { 
+    fill: #15803d !important; 
+    stroke: #4ade80 !important; 
+}
+.heat-2 { 
+    fill: #38bdf8 !important; 
+    stroke: #0284c7 !important; 
+}
+.dark .heat-2 { 
+    fill: #0369a1 !important; 
+    stroke: #38bdf8 !important; 
+}
+.heat-3 { 
+    fill: #c084fc !important; 
+    stroke: #9333ea !important; 
+}
+.dark .heat-3 { 
+    fill: #7e22ce !important; 
+    stroke: #e9d5ff !important; 
+    filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.7)); 
+}
+
+/* ============================================================== */
+/* RECOVERY FÁRADTSÁG & NYÚJTÁS SZINTEK (ZÖLD -> PIROS)          */
+/* ============================================================== */
+.fatigue-0 { 
+    fill: #10b981 !important; 
+    stroke: #059669 !important; 
+}
+.fatigue-1 { 
+    fill: #fbbf24 !important; 
+    stroke: #d97706 !important; 
+}
+.fatigue-2 { 
+    fill: #f97316 !important; 
+    stroke: #c2410c !important; 
+}
+.fatigue-3 { 
+    fill: #ef4444 !important; 
+    stroke: #b91c1c !important; 
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.8)); 
+}
