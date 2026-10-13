@@ -1,0 +1,1041 @@
+<!-- ============================================================== -->
+    <!-- 2. RÉSZ: MODALOK (BEÁLLÍTÁSOK, ÉTREND, SÚLYCSÚSZKA, ESZKÖZÖK) -->
+    <!-- ============================================================== -->
+
+    <!-- MODAL 1: BEÁLLÍTÁSOK, TÉMA, NYELV & BIZTONSÁGI ADATMENTÉS -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-gear text-brand-600 dark:text-brand-400"></i>
+                    <span data-i18n="settingsTitle">Beállítások</span>
+                </h3>
+                <button onclick="closeModal('settings-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- TÉMA VÁLASZTÓ -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wider" data-i18n="themeLabel">Megjelenés / Téma</label>
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-2xl">
+                    <button type="button" id="theme-light-btn" onclick="setAppTheme('light')" class="py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-sun text-amber-500"></i>
+                        <span data-i18n="themeLight">Világos</span>
+                    </button>
+                    <button type="button" id="theme-dark-btn" onclick="setAppTheme('dark')" class="py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-moon text-bluebrand-400"></i>
+                        <span data-i18n="themeDark">Sötét</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- BIZTONSÁGI ADATMENTÉS (JSON EXPORT & IMPORT) -->
+            <div class="mb-5 p-3 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-300 dark:border-slate-800 space-y-2">
+                <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    <i class="fa-solid fa-shield-halved text-emerald-500 mr-1"></i> Adatvédelem & Mentés
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="exportDataBackup()" class="py-2 px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+                        <i class="fa-solid fa-download"></i> Mentés (JSON)
+                    </button>
+                    <button type="button" onclick="document.getElementById('backup-import-file').click()" class="py-2 px-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-300 dark:border-slate-700">
+                        <i class="fa-solid fa-upload"></i> Visszaállítás
+                    </button>
+                    <input type="file" id="backup-import-file" accept=".json" class="hidden" onchange="importDataBackup(event)">
+                </div>
+                <p class="text-[9px] text-slate-500 italic">Egyetlen kattintással lementheted vagy visszaállíthatod a teljes adatbázisodat.</p>
+            </div>
+
+            <!-- NYELVVÁLASZTÓ (6 NYELV) -->
+            <div>
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wider" data-i18n="langLabel">Nyelv / Language</label>
+                <div class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                    <button onclick="changeLanguage('hu')" class="w-full text-left px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold transition flex items-center justify-between cursor-pointer">
+                        <span>🇭🇺 Magyar</span>
+                        <span id="lang-check-hu" class="text-brand-600 dark:text-brand-400"><i class="fa-solid fa-check"></i></span>
+                    </button>
+                    <button onclick="changeLanguage('en')" class="w-full text-left px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold transition flex items-center justify-between cursor-pointer">
+                        <span>🇬🇧 English</span>
+                        <span id="lang-check-en" class="text-brand-600 dark:text-brand-400 hidden"><i class="fa-solid fa-check"></i></span>
+                    </button>
+                    <button onclick="changeLanguage('de')" class="w-full text-left px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold transition flex items-center justify-between cursor-pointer">
+                        <span>🇩🇪 Deutsch</span>
+                        <span id="lang-check-de" class="text-brand-600 dark:text-brand-400 hidden"><i class="fa-solid fa-check"></i></span>
+                    </button>
+                    <button onclick="changeLanguage('fr')" class="w-full text-left px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold transition flex items-center justify-between cursor-pointer">
+                        <span>🇫🇷 Français</span>
+                        <span id="lang-check-fr" class="text-brand-600 dark:text-brand-400 hidden"><i class="fa-solid fa-check"></i></span>
+                    </button>
+                    <button onclick="changeLanguage('es')" class="w-full text-left px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold transition flex items-center justify-between cursor-pointer">
+                        <span>🇪🇸 Español</span>
+                        <span id="lang-check-es" class="text-brand-600 dark:text-brand-400 hidden"><i class="fa-solid fa-check"></i></span>
+                    </button>
+                    <button onclick="changeLanguage('zh')" class="w-full text-left px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold transition flex items-center justify-between cursor-pointer">
+                        <span>🇨🇳 简体中文 (Chinese)</span>
+                        <span id="lang-check-zh" class="text-brand-600 dark:text-brand-400 hidden"><i class="fa-solid fa-check"></i></span>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="closeModal('settings-modal')" class="mt-5 w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-xl text-xs font-bold cursor-pointer transition" data-i18n="closeBtn">Bezárás</button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: HAVI NAPTÁR NAP RÉSZLETEI -->
+    <div id="calendar-day-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl max-h-[85vh] flex flex-col text-slate-900 dark:text-white">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-base flex items-center gap-2" id="cal-day-modal-title">
+                    <i class="fa-regular fa-calendar-days text-brand-600 dark:text-brand-400"></i> <span data-i18n="dayDetailsTitle">Nap Részletei</span>
+                </h3>
+                <button onclick="closeModal('calendar-day-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="cal-day-modal-content" class="overflow-y-auto space-y-3 flex-1 custom-scrollbar text-xs text-slate-700 dark:text-slate-300 pr-1"></div>
+            <div class="mt-4 pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <button id="cal-day-jump-btn" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold transition shadow cursor-pointer" data-i18n="jumpToWeekBtn">
+                    Ugrás erre a hétre &rarr;
+                </button>
+                <button onclick="closeModal('calendar-day-modal')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-xl text-xs font-semibold cursor-pointer" data-i18n="closeBtn">Bezárás</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: BŰNÖZÉS (CHEAT MEAL) - KÉTIRÁNYÚ SZINKRON CSÚSZKA & VONALKÓD -->
+    <div id="cheat-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white dark:bg-slate-900 border border-amber-400 dark:border-amber-500/40 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl my-auto ring-1 ring-amber-500/20 text-slate-900 dark:text-white">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="font-bold text-base flex items-center gap-2" id="cheat-modal-title">
+                    <i class="fa-solid fa-cookie-bite text-amber-500 dark:text-amber-400"></i> <span data-i18n="cheatModalTitle">Bűnözés / Cheat Meal Rögzítése</span>
+                </h3>
+                <button onclick="closeCheatModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Kamera / Szkenner Konténer -->
+            <div id="cheat-scanner-container" class="hidden mb-4 p-3 bg-slate-100 dark:bg-slate-950 border border-amber-500/30 rounded-2xl text-center space-y-3">
+                <div class="flex items-center justify-between text-xs text-amber-600 dark:text-amber-300 font-semibold px-1">
+                    <span><i class="fa-solid fa-camera mr-1.5"></i> Irányítsd a kamerát a vonalkódra:</span>
+                    <button type="button" onclick="stopBarcodeScanner()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-sm"></i></button>
+                </div>
+                <div id="barcode-reader" class="w-full max-h-64 rounded-xl overflow-hidden bg-black mx-auto"></div>
+                <p class="text-[10px] text-slate-500">A felismert kód alapján automatikusan lekérjük a termék adatait az Open Food Facts adatbázisból.</p>
+            </div>
+
+            <!-- Szkenner Indítás & Manuális Kódkeresés -->
+            <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                <button type="button" id="start-scanner-btn" onclick="startBarcodeScanner()" class="flex-1 py-2.5 px-3 bg-gradient-to-r from-amber-600 to-orange-500 hover:opacity-95 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer">
+                    <i class="fa-solid fa-barcode text-sm"></i> <span data-i18n="scanBarcodeBtn">Vonalkód / QR Beolvasása</span>
+                </button>
+                <div class="flex gap-1.5">
+                    <input type="text" id="cheat-barcode-input" placeholder="Vonalkód számai..." class="w-36 sm:w-40 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
+                    <button type="button" onclick="lookupBarcodeManual()" class="px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold cursor-pointer" title="Keresés">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="cheat-lookup-loading" class="hidden text-center py-3 text-xs text-amber-500 dark:text-amber-400">
+                <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Termék keresése az adatbázisban...
+            </div>
+
+            <form onsubmit="saveCheatForm(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="cheat-date-key">
+                <input type="hidden" id="cheat-100g-cal" value="0">
+                <input type="hidden" id="cheat-100g-pro" value="0">
+                <input type="hidden" id="cheat-100g-car" value="0">
+                <input type="hidden" id="cheat-100g-fat" value="0">
+
+                <div id="cheat-product-preview" class="hidden p-3 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-300 dark:border-slate-800 flex items-center gap-3">
+                    <img id="cheat-preview-img" src="" class="w-12 h-12 rounded-xl object-cover bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 flex-shrink-0">
+                    <div class="truncate">
+                        <h4 id="cheat-preview-title" class="font-bold text-slate-900 dark:text-white text-xs truncate"></h4>
+                        <div id="cheat-preview-macros-100g" class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="cheatNameLabel">Termék / Étel Neve *</label>
+                        <input type="text" id="cheat-name" required placeholder="pl. Csoki, Pizza, Chips..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="cheatAmountLabel">Mennyiség (gramm / db)</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="cheat-amount" min="10" max="1000" step="5" value="100" 
+                                oninput="syncCheatSliderWithInput(this.value)" 
+                                onchange="syncCheatSliderWithInput(this.value)"
+                                class="w-24 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-bold text-center focus:outline-none focus:border-amber-500">
+                            <span class="text-slate-500 dark:text-slate-400 font-medium">gramm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kétirányúan szinkronizált csúszka (10-1000g) -->
+                <div>
+                    <input type="range" id="cheat-amount-slider" min="10" max="1000" step="5" value="100" 
+                        oninput="syncCheatInputWithSlider(this.value)" 
+                        onchange="syncCheatInputWithSlider(this.value)"
+                        class="w-full cursor-pointer">
+                    <div class="flex justify-between text-[9px] text-slate-500 mt-0.5 font-semibold">
+                        <span>10g</span>
+                        <span>100g</span>
+                        <span>250g</span>
+                        <span>500g</span>
+                        <span>1000g</span>
+                    </div>
+                </div>
+
+                <!-- Számított értékek több színnel -->
+                <div class="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 p-3 rounded-2xl">
+                    <div class="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                        <span><i class="fa-solid fa-fire mr-1"></i> Számított Értékek erre az adagra:</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-normal">Kézzel is szerkeszthető</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-center">
+                        <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <label class="block text-[9px] text-amber-600 dark:text-amber-400 mb-0.5 font-bold" data-i18n="macroCalories">Kalória (kcal)</label>
+                            <input type="number" step="any" id="cheat-calories" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-center text-amber-700 dark:text-amber-400 font-black focus:outline-none focus:border-amber-500 text-xs">
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <label class="block text-[9px] text-bluebrand-600 dark:text-bluebrand-400 mb-0.5 font-bold" data-i18n="macroProtein">Fehérje (g)</label>
+                            <input type="number" step="any" id="cheat-protein" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-center text-bluebrand-600 dark:text-bluebrand-400 font-black focus:outline-none focus:border-bluebrand-500 text-xs">
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <label class="block text-[9px] text-amber-600 dark:text-amber-400 mb-0.5 font-bold" data-i18n="macroCarbs">Szénhidrát (g)</label>
+                            <input type="number" step="any" id="cheat-carbs" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-center text-amber-600 dark:text-amber-400 font-black focus:outline-none focus:border-amber-500 text-xs">
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <label class="block text-[9px] text-redbrand-600 dark:text-redbrand-400 mb-0.5 font-bold" data-i18n="macroFat">Zsír (g)</label>
+                            <input type="number" step="any" id="cheat-fat" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-center text-redbrand-600 dark:text-redbrand-400 font-black focus:outline-none focus:border-redbrand-500 text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <div class="text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-2 flex justify-between items-center">
+                        <span>Mai rögzített bűnözések:</span>
+                        <span id="cheat-today-total-badge" class="text-amber-600 dark:text-amber-400 text-xs font-bold">0 tétel</span>
+                    </div>
+                    <div id="cheat-day-logs-list" class="max-h-28 overflow-y-auto custom-scrollbar space-y-1.5 pr-1"></div>
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeCheatModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-300 dark:hover:bg-slate-700 cursor-pointer" data-i18n="closeBtn">Bezárás</button>
+                    <button type="submit" class="px-5 py-2 bg-gradient-to-r from-amber-600 to-orange-500 hover:opacity-95 text-white rounded-xl text-xs font-bold shadow-lg shadow-amber-600/30 transition cursor-pointer">
+                        <i class="fa-solid fa-plus mr-1"></i> <span data-i18n="addBtn">Hozzáadás</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: HIDRATÁCIÓ - KÉTIRÁNYÚ SZINKRON MEZŐVEL & CSÚSZKÁVAL (50-2500 ML) -->
+    <div id="hydration-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-cyan-300 dark:border-cyan-800/50 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden ring-1 ring-cyan-500/20 text-slate-900 dark:text-white">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-base flex items-center gap-2" id="hydration-modal-title">
+                    <i class="fa-solid fa-glass-water text-cyan-600 dark:text-cyan-400"></i> <span data-i18n="hydroModalTitle">Folyadékbevitel Rögzítése</span>
+                </h3>
+                <button onclick="closeModal('hydration-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveHydrationForm(event)" class="p-5 space-y-4 text-xs">
+                <input type="hidden" id="hydro-date-key">
+
+                <!-- Garmin becsült izzadási veszteség banner -->
+                <div id="hydro-sweat-banner" class="hidden p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-droplet text-amber-500 text-sm"></i>
+                        <div>
+                            <span class="font-bold text-amber-800 dark:text-amber-300 block text-xs" data-i18n="sweatLossTitle">Garmin Becsült Izzadás:</span>
+                            <span id="hydro-sweat-desc" class="text-[10px] text-amber-600 dark:text-amber-400">+0 ml pótlás szükséges</span>
+                        </div>
+                    </div>
+                    <span id="hydro-sweat-val" class="font-black text-amber-600 dark:text-amber-400 text-sm">+0 ml</span>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="drinkTypeLabel">Elfogyasztott Innivaló Típusa</label>
+                    <select id="hydro-type" onchange="updateHydrationPreview()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 text-xs cursor-pointer">
+                        <option value="Izotóniás ital" data-factor="1.05">⚡ Izotóniás ital (1.05×)</option>
+                        <option value="Víz" data-factor="1.00" selected>💧 Víz / Ásványvíz (1.00×)</option>
+                        <option value="Meleg tea" data-factor="0.90">🍵 Meleg tea (0.90×)</option>
+                        <option value="Gyümölcslé 100%" data-factor="0.85">🍊 100% Gyümölcslé (0.85×)</option>
+                        <option value="Gyümölcslé" data-factor="0.80">🧃 Gyümölcslé / Nektár (0.80×)</option>
+                        <option value="Fehérje" data-factor="0.80">🥤 Fehérje turmix (0.80×)</option>
+                        <option value="Szörp" data-factor="0.75">🍓 Szörp (0.75×)</option>
+                        <option value="Kávé" data-factor="0.70">☕ Kávé (0.70×)</option>
+                        <option value="Cukros innivaló" data-factor="0.60">🥤 Cukros üdítő (0.60×)</option>
+                    </select>
+                </div>
+
+                <!-- Szinkronizált milliliter beviteli mező és csúszka -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-slate-700 dark:text-slate-300 font-semibold" data-i18n="drinkAmountLabel">Elfogyasztott Mennyiség</label>
+                        <div class="flex items-center gap-1.5">
+                            <input type="number" id="hydro-amount-input" min="50" max="2500" step="50" value="300" 
+                                oninput="syncHydroSliderWithInput(this.value)" 
+                                onchange="syncHydroSliderWithInput(this.value)"
+                                class="w-20 bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-2 py-1 text-slate-900 dark:text-white font-bold text-center text-xs focus:outline-none focus:border-cyan-500">
+                            <span class="text-slate-500 dark:text-slate-400 font-semibold text-xs">ml</span>
+                        </div>
+                    </div>
+                    <input type="range" id="hydro-amount-slider" min="50" max="2500" step="50" value="300" 
+                        class="w-full cursor-pointer" 
+                        oninput="syncHydroInputWithSlider(this.value)" 
+                        onchange="syncHydroInputWithSlider(this.value)">
+                    <div class="flex justify-between text-[9px] text-slate-500 mt-1 font-semibold">
+                        <span>50 ml</span>
+                        <span>250 ml</span>
+                        <span>500 ml</span>
+                        <span>1000 ml</span>
+                        <span>2500 ml</span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800/40 rounded-xl text-center space-y-0.5">
+                    <div class="text-[10px] text-cyan-700 dark:text-cyan-300" data-i18n="effectiveHydroLabel">Számított hatékony hidratálás:</div>
+                    <div id="hydro-calc-result" class="text-base font-black text-slate-900 dark:text-white">300 ml</div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <div class="text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-2 flex justify-between items-center">
+                        <span data-i18n="todayLoggedDrinks">Mai rögzített tételek:</span>
+                        <span id="hydro-today-total-badge" class="text-cyan-600 dark:text-cyan-400 text-xs font-bold">0 ml</span>
+                    </div>
+                    <div id="hydro-day-logs-list" class="max-h-28 overflow-y-auto custom-scrollbar space-y-1.5 pr-1"></div>
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeModal('hydration-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-300 dark:hover:bg-slate-700 cursor-pointer" data-i18n="closeBtn">Bezárás</button>
+                    <button type="submit" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-cyan-600/30 transition cursor-pointer">
+                        <i class="fa-solid fa-plus mr-1"></i> <span data-i18n="addBtn">Hozzáadás</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: ÉTELKÉSZÍTŐ VONALKÓDOS HOZZÁVALÓ ÉPÍTŐVEL -->
+    <div id="add-meal-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white dark:bg-slate-900 border border-brand-300 dark:border-brand-800/50 rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl my-auto text-slate-900 dark:text-white">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 id="meal-form-title" class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-utensils text-brand-600 dark:text-brand-400"></i>
+                    <span data-i18n="mealFormTitle">Étel Létrehozása / Szerkesztése</span>
+                </h3>
+                <button onclick="closeAddMealModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Vonalkódos Hozzávaló Beolvasó Szekció -->
+            <div class="mb-4 p-3.5 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-brand-200 dark:border-brand-900/40 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-brand-700 dark:text-brand-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-barcode"></i> <span>Hozzávalók Beolvasása Vonalkóddal</span>
+                    </span>
+                    <button type="button" onclick="toggleRecipeBarcodeScanner()" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-xs">
+                        <i class="fa-solid fa-camera"></i> <span id="recipe-scanner-btn-label">Kamera Indítása</span>
+                    </button>
+                </div>
+
+                <div id="recipe-scanner-container" class="hidden p-2 bg-black/10 rounded-xl text-center space-y-2">
+                    <div id="recipe-barcode-reader" class="w-full max-h-56 rounded-xl overflow-hidden bg-black mx-auto"></div>
+                    <p class="text-[10px] text-slate-500">Irányítsd a hozzávaló vonalkódjára a kamerát!</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
+                    <div class="sm:col-span-5">
+                        <label class="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Vonalkód számai</label>
+                        <div class="flex gap-1">
+                            <input type="text" id="recipe-barcode-input" placeholder="Vonalkód..." class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+                            <button type="button" onclick="lookupRecipeBarcodeManual()" class="px-2.5 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold cursor-pointer">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-4">
+                        <label class="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Mennyiség (gramm)</label>
+                        <input type="number" id="recipe-ingredient-amount" value="100" min="1" max="5000" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 dark:text-white font-bold focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <button type="button" onclick="addCurrentScannedIngredient()" id="add-scanned-ing-btn" class="w-full py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50" disabled>
+                            <i class="fa-solid fa-plus text-[10px]"></i> Hozzáadás
+                        </button>
+                    </div>
+                </div>
+
+                <div id="recipe-lookup-loading" class="hidden text-center py-1.5 text-xs text-brand-600 dark:text-brand-400">
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> Hozzávaló keresése az adatbázisban...
+                </div>
+
+                <div id="recipe-ing-staging" class="hidden p-2 bg-white dark:bg-slate-900 rounded-xl border border-brand-300 dark:border-brand-800/60 flex items-center justify-between text-xs">
+                    <div class="truncate pr-2">
+                        <strong id="staging-ing-name" class="text-slate-900 dark:text-white block truncate"></strong>
+                        <span id="staging-ing-macros" class="text-[10px] text-slate-500 dark:text-slate-400"></span>
+                    </div>
+                    <span class="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950 px-2 py-0.5 rounded-lg border border-brand-200 dark:border-brand-800">Kész a csatolásra</span>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                        Csatolt Hozzávalók az Ételben:
+                    </label>
+                    <div id="recipe-ingredients-chip-list" class="min-h-[38px] p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-800 space-y-1.5">
+                        <div id="empty-ingredients-hint" class="text-[11px] text-slate-400 italic">Még nincsenek vonalkóddal csatolt hozzávalók (vagy add meg kézzel lejjebb).</div>
+                    </div>
+                </div>
+            </div>
+
+            <form onsubmit="saveMeal(event)" class="space-y-3.5 text-xs">
+                <input type="hidden" id="meal-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="mealNameLabel">Étel Neve *</label>
+                        <input type="text" id="meal-name" required placeholder="pl. Csirkés rizs zöldbabbal..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="mealImageUrlLabel">Kép URL (Opcionális)</label>
+                        <input type="url" id="meal-image" placeholder="https://..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-950/80 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Teljes Étel Tápértéke (Automatikusan összegződik):</span>
+                        <span class="text-[10px] text-slate-400 italic">Kézzel is átírható</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+                            <label class="block text-[10px] text-brand-600 dark:text-brand-400 font-bold mb-1" data-i18n="macroCalories">Kalória (kcal)</label>
+                            <input type="number" step="any" id="meal-calories" required placeholder="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1 text-brand-600 dark:text-brand-400 font-black text-center focus:outline-none focus:border-brand-500 text-xs">
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+                            <label class="block text-[10px] text-bluebrand-600 dark:text-bluebrand-400 font-bold mb-1" data-i18n="macroProtein">Fehérje (g)</label>
+                            <input type="number" step="any" id="meal-protein" required placeholder="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1 text-bluebrand-600 dark:text-bluebrand-400 font-black text-center focus:outline-none focus:border-bluebrand-500 text-xs">
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+                            <label class="block text-[10px] text-amber-600 dark:text-amber-400 font-bold mb-1" data-i18n="macroCarbs">Szénhidrát (g)</label>
+                            <input type="number" step="any" id="meal-carbs" required placeholder="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1 text-amber-600 dark:text-amber-400 font-black text-center focus:outline-none focus:border-amber-500 text-xs">
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+                            <label class="block text-[10px] text-redbrand-600 dark:text-redbrand-400 font-bold mb-1" data-i18n="macroFat">Zsír (g)</label>
+                            <input type="number" step="any" id="meal-fat" required placeholder="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1 text-redbrand-600 dark:text-redbrand-400 font-black text-center focus:outline-none focus:border-redbrand-500 text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="ingredientsTextLabel">Hozzávalók Szövegesen (Automatikusan frissül a csatoltakból)</label>
+                    <textarea id="meal-ingredients" rows="2" placeholder="Hozzávalók listája..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 custom-scrollbar"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="recipeInstructionsLabel">Elkészítés / Recept</label>
+                    <textarea id="meal-recipe" rows="3" placeholder="Elkészítési lépések, sütési idő..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 custom-scrollbar"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeAddMealModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl cursor-pointer" data-i18n="cancelBtn">Mégse</button>
+                    <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold cursor-pointer shadow-lg shadow-brand-600/30" data-i18n="saveBtn">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 6: GYAKORLAT KATEGÓRIA -->
+    <div id="exercise-category-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-bluebrand-300 dark:border-bluebrand-800/50 rounded-2xl max-w-sm w-full shadow-2xl p-5 text-slate-900 dark:text-white">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus text-bluebrand-600 dark:text-bluebrand-400"></i>
+                    <span data-i18n="newExerciseCategoryBtn">Új Gyakorlat Kategória</span>
+                </h3>
+                <button onclick="closeModal('exercise-category-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveExerciseCategoryForm(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="categoryNameLabel">Kategória Neve *</label>
+                    <input type="text" id="ex-cat-name" required placeholder="pl. Mellizom, Hátizom, Karok, Törzs..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-bluebrand-500">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('exercise-category-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl text-xs font-semibold cursor-pointer" data-i18n="cancelBtn">Mégse</button>
+                    <button type="submit" class="px-5 py-2 bg-bluebrand-600 hover:bg-bluebrand-500 text-white rounded-xl text-xs font-bold shadow cursor-pointer" data-i18n="saveBtn">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 7: EDZÉS GYAKORLAT SZERKESZTŐ -->
+    <div id="workout-exercise-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-bluebrand-300 dark:border-bluebrand-800/50 rounded-2xl max-w-md w-full shadow-2xl p-5 text-slate-900 dark:text-white max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 id="workout-exercise-modal-title" class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-dumbbell text-bluebrand-600 dark:text-bluebrand-400"></i>
+                    <span data-i18n="newExerciseBtn">Új Gyakorlat Hozzáadása</span>
+                </h3>
+                <button onclick="closeModal('workout-exercise-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form onsubmit="saveWorkoutExerciseForm(event)" class="space-y-3.5 text-xs overflow-y-auto custom-scrollbar pr-1 flex-1">
+                <input type="hidden" id="ex-form-id">
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="exerciseNameLabel">Gyakorlat Neve *</label>
+                    <input type="text" id="ex-form-name" required placeholder="pl. Fekvenyomás rúddal, Húzódzkodás..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-bluebrand-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="categoryLabel">Kategória *</label>
+                    <select id="ex-form-category" required class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-bluebrand-500 cursor-pointer"></select>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Leírás / Megjegyzés (Opcionális)</label>
+                    <textarea id="ex-form-desc" rows="2" placeholder="Végrehajtási instrukciók, beállítások..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-bluebrand-500 custom-scrollbar"></textarea>
+                </div>
+
+                <div class="p-3 bg-slate-100 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-[11px] text-bluebrand-700 dark:text-bluebrand-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-person-rays"></i> <span data-i18n="targetMusclesLabel">Megdolgozott Izomcsoportok</span>
+                        </span>
+                        <button type="button" onclick="clearExerciseMuscles()" class="text-[10px] text-slate-400 hover:text-red-500 cursor-pointer" data-i18n="clearMusclesBtn">Törlés</button>
+                    </div>
+                    <div id="ex-muscle-badges" class="flex flex-wrap gap-1.5 pt-1"></div>
+                </div>
+
+                <div class="pt-3 flex justify-between items-center border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" id="ex-delete-btn" onclick="deleteCurrentWorkoutExercise()" class="px-3 py-2 rounded-xl bg-red-100 dark:bg-red-950/60 hover:bg-red-200 dark:hover:bg-red-900 border border-red-300 dark:border-red-800/50 text-red-600 dark:text-red-400 font-semibold hidden cursor-pointer">
+                        <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="deleteBtn">Törlés</span>
+                    </button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" onclick="closeModal('workout-exercise-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl text-xs font-semibold cursor-pointer" data-i18n="cancelBtn">Mégse</button>
+                        <button type="submit" class="px-5 py-2 bg-bluebrand-600 hover:bg-bluebrand-500 text-white rounded-xl text-xs font-bold shadow cursor-pointer" data-i18n="saveBtn">Mentés</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 8: SÚLYVÁLASZTÓ SEGÉD-CSÚSZKA (Z-[100] LEGELSŐ RÉTEG) -->
+    <div id="weight-picker-modal" class="fixed inset-0 z-[100] hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border-2 border-bluebrand-400 dark:border-bluebrand-600 rounded-3xl max-w-xs w-full shadow-2xl p-6 text-slate-900 dark:text-white text-center space-y-4 ring-2 ring-bluebrand-500/30">
+            <h4 class="font-bold text-sm text-bluebrand-600 dark:text-bluebrand-400 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-weight-hanging text-base"></i> Súly Beállítása
+            </h4>
+
+            <div id="weight-picker-display" class="text-2xl font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 py-3 rounded-2xl border border-slate-300 dark:border-slate-800">
+                Testsúly (BW)
+            </div>
+
+            <div>
+                <input type="range" id="weight-picker-slider" min="-1" max="300" step="1" value="-1" 
+                    oninput="updateWeightPickerDisplay(this.value)" 
+                    class="w-full cursor-pointer">
+                <div class="flex justify-between text-[9px] text-slate-500 font-semibold mt-1">
+                    <span class="text-bluebrand-500">Testsúly</span>
+                    <span>50kg</span>
+                    <span>100kg</span>
+                    <span>200kg</span>
+                    <span>300kg</span>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-1.5 justify-center">
+                <button type="button" onclick="setWeightPickerValue(-1)" class="px-2.5 py-1 rounded-lg bg-bluebrand-50 dark:bg-bluebrand-950 border border-bluebrand-300 dark:border-bluebrand-800 text-[10px] font-bold text-bluebrand-600 dark:text-bluebrand-400 cursor-pointer">Testsúly</button>
+                <button type="button" onclick="setWeightPickerValue(20)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-700 dark:text-slate-300 cursor-pointer">20 kg</button>
+                <button type="button" onclick="setWeightPickerValue(40)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-700 dark:text-slate-300 cursor-pointer">40 kg</button>
+                <button type="button" onclick="setWeightPickerValue(60)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-700 dark:text-slate-300 cursor-pointer">60 kg</button>
+                <button type="button" onclick="setWeightPickerValue(80)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-700 dark:text-slate-300 cursor-pointer">80 kg</button>
+                <button type="button" onclick="setWeightPickerValue(100)" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-700 dark:text-slate-300 cursor-pointer">100 kg</button>
+            </div>
+
+            <div class="pt-3 flex justify-end gap-2 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" onclick="closeModal('weight-picker-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl text-xs font-semibold cursor-pointer">Mégse</button>
+                <button type="button" onclick="confirmWeightPickerSelection()" class="px-5 py-2 bg-bluebrand-600 hover:bg-bluebrand-500 text-white rounded-xl text-xs font-bold shadow cursor-pointer">Kész</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 9: EDZÉSPROGRAM ÉPÍTŐ -->
+    <div id="workout-program-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-bluebrand-300 dark:border-bluebrand-800/50 rounded-2xl max-w-2xl w-full max-h-[94vh] flex flex-col shadow-2xl overflow-hidden text-slate-900 dark:text-white">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-base flex items-center gap-2" id="workout-program-modal-title">
+                    <i class="fa-solid fa-layer-group text-bluebrand-600 dark:text-bluebrand-400"></i> <span data-i18n="newProgramBtn">Edzésprogram Szerkesztése</span>
+                </h3>
+                <button onclick="closeModal('workout-program-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-2 text-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveWorkoutProgramForm(event)" class="p-4 overflow-y-auto custom-scrollbar space-y-4 text-xs flex-1">
+                <input type="hidden" id="prog-form-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="programNameLabel">Program Neve *</label>
+                        <input type="text" id="prog-form-name" required placeholder="pl. Push A - Mell & Váll..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-bluebrand-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="categoryLabel">Kategória *</label>
+                        <select id="prog-form-category" required class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-bluebrand-500 cursor-pointer"></select>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-bluebrand-50 dark:bg-bluebrand-950/40 rounded-2xl border border-bluebrand-200 dark:border-bluebrand-900/40 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-bluebrand-800 dark:text-bluebrand-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus-circle"></i> Gyakorlat hozzáadása a programhoz
+                        </span>
+                        <button type="button" onclick="openWorkoutExerciseModal()" class="text-[10px] text-bluebrand-600 dark:text-bluebrand-400 font-bold hover:underline cursor-pointer">
+                            + Új gyakorlat létrehozása
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <select id="prog-exercise-picker" class="flex-1 bg-white dark:bg-slate-900 border border-bluebrand-300 dark:border-bluebrand-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-bluebrand-500 cursor-pointer">
+                            <option value="">-- Válassz gyakorlatot a könyvtárból --</option>
+                        </select>
+                        <button type="button" onclick="addExerciseToProgramBuilder()" class="px-4 py-2 bg-bluebrand-600 hover:bg-bluebrand-500 text-white rounded-xl font-bold flex items-center justify-center gap-1 shadow cursor-pointer whitespace-nowrap">
+                            <i class="fa-solid fa-plus"></i> Hozzáadás
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                        Program Gyakorlatai & Sorozatai:
+                    </label>
+                    <div id="prog-items-container" class="space-y-2 min-h-[60px] p-2 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div id="prog-items-empty" class="text-center py-4 text-slate-400 italic text-[11px]">Még nincsenek hozzáadott gyakorlatok a programban.</div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-100 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-2">
+                    <span class="font-bold text-[11px] text-bluebrand-700 dark:text-bluebrand-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-person-rays"></i> <span data-i18n="muscleMapTitle">Érintett Izomcsoportok (Automatikusan számolva)</span>
+                    </span>
+                    <div id="prog-muscle-badges" class="flex flex-wrap gap-1.5 pt-1"></div>
+                </div>
+
+                <div class="pt-3 flex justify-between items-center border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" id="prog-delete-btn" onclick="deleteCurrentWorkoutProgram()" class="px-3 py-2 rounded-xl bg-red-100 dark:bg-red-950/60 hover:bg-red-200 dark:hover:bg-red-900 border border-red-300 dark:border-red-800/50 text-red-600 dark:text-red-400 font-semibold hidden cursor-pointer">
+                        <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="deleteBtn">Törlés</span>
+                    </button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" onclick="closeModal('workout-program-modal')" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-semibold hover:bg-slate-300 dark:hover:bg-slate-700 cursor-pointer" data-i18n="cancelBtn">Mégse</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-bluebrand-600 hover:bg-bluebrand-500 text-white font-bold shadow-lg shadow-bluebrand-600/30 cursor-pointer" data-i18n="saveBtn">Mentés</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 10: RECOVERY GYAKORLATSOR KATEGÓRIA -->
+    <div id="rec-routine-category-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-purplebrand-300 dark:border-purplebrand-800/50 rounded-2xl max-w-sm w-full shadow-2xl p-5 text-slate-900 dark:text-white">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus text-purplebrand-600 dark:text-purplebrand-400"></i>
+                    <span>Új Recovery Kategória</span>
+                </h3>
+                <button onclick="closeModal('rec-routine-category-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveRecRoutineCategoryForm(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="categoryNameLabel">Kategória Neve *</label>
+                    <input type="text" id="rec-cat-name" required placeholder="pl. Nyújtás, Gerinctorna, Hengerezés, Szauna..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purplebrand-500">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('rec-routine-category-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl text-xs font-semibold cursor-pointer" data-i18n="cancelBtn">Mégse</button>
+                    <button type="submit" class="px-5 py-2 bg-purplebrand-600 hover:bg-purplebrand-500 text-white rounded-xl text-xs font-bold shadow cursor-pointer" data-i18n="saveBtn">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 11: RECOVERY GYAKORLATSOR SZERKESZTŐ -->
+    <div id="recovery-routine-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-purplebrand-300 dark:border-purplebrand-800/50 rounded-2xl max-w-lg w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden text-slate-900 dark:text-white">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-base flex items-center gap-2" id="recovery-routine-modal-title">
+                    <i class="fa-solid fa-spa text-purplebrand-600 dark:text-purplebrand-400"></i> <span>Recovery Gyakorlatsor Szerkesztése</span>
+                </h3>
+                <button onclick="closeModal('recovery-routine-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-2 text-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveRecoveryRoutineForm(event)" class="p-4 overflow-y-auto custom-scrollbar space-y-4 text-xs">
+                <input type="hidden" id="rec-routine-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Gyakorlatsor Neve *</label>
+                        <input type="text" id="rec-routine-name" required placeholder="pl. Alsótest mélynyújtás, SMR henger..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purplebrand-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Kategória *</label>
+                        <select id="rec-routine-category" required class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purplebrand-500 cursor-pointer"></select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Gyakorlatok / Rutin Leírása *</label>
+                    <textarea id="rec-routine-desc" rows="4" required placeholder="1. Pigeon pose: 2 perc oldalanként&#10;2. Combhajlító nyújtás hevederrel&#10;3. Vádlihengerezés..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purplebrand-500 custom-scrollbar"></textarea>
+                </div>
+
+                <div class="p-3 bg-slate-100 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="font-bold text-xs text-purplebrand-700 dark:text-purplebrand-300 block">Célzott Izomcsoport Nyújtása</span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400">Rendelsz-e hozzá konkrét izmot a fáradtság enyhítéséhez?</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="rec-routine-has-muscles" onchange="toggleRecMuscleSection(this.checked)" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purplebrand-600"></div>
+                        </label>
+                    </div>
+
+                    <div id="rec-routine-muscles-wrapper" class="hidden pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
+                        <span class="text-[10px] text-slate-400 block">Jelöld ki a kezelt izomcsoportokat (ez csökkenti az izom pirosodását a recovery sziluetten):</span>
+                        <div id="rec-routine-muscle-badges" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex justify-between items-center border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" id="rec-routine-delete-btn" onclick="deleteCurrentRecoveryRoutine()" class="px-3 py-2 rounded-xl bg-red-100 dark:bg-red-950/60 hover:bg-red-200 dark:hover:bg-red-900 border border-red-300 dark:border-red-800/50 text-red-600 dark:text-red-400 font-semibold hidden cursor-pointer">
+                        <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="deleteBtn">Törlés</span>
+                    </button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" onclick="closeModal('recovery-routine-modal')" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-semibold hover:bg-slate-300 dark:hover:bg-slate-700 cursor-pointer" data-i18n="cancelBtn">Mégse</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-purplebrand-600 hover:bg-purplebrand-500 text-white font-bold shadow-lg shadow-purplebrand-600/30 cursor-pointer" data-i18n="saveBtn">Mentés</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 12: ESZKÖZ KATEGÓRIA -->
+    <div id="gear-category-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-orangebrand-300 dark:border-orangebrand-800/50 rounded-2xl max-w-sm w-full shadow-2xl p-5 text-slate-900 dark:text-white">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus text-orangebrand-600 dark:text-orangebrand-400"></i>
+                    <span>Új Eszköz Kategória</span>
+                </h3>
+                <button onclick="closeModal('gear-category-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveGearCategoryForm(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1" data-i18n="categoryNameLabel">Kategória Neve *</label>
+                    <input type="text" id="gear-cat-name" required placeholder="pl. Futócipők, Kerékpár, Súlyzók, Recovery eszköz..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-orangebrand-500">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('gear-category-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl text-xs font-semibold cursor-pointer" data-i18n="cancelBtn">Mégse</button>
+                    <button type="submit" class="px-5 py-2 bg-orangebrand-500 hover:bg-orangebrand-400 text-slate-950 rounded-xl text-xs font-bold shadow cursor-pointer" data-i18n="saveBtn">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 13: ESZKÖZ LÉTREHOZÁSA & KARBANTARTÁSI CSÚSZKA (7-365 NAP) -->
+    <div id="gear-item-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-orangebrand-300 dark:border-orangebrand-800/50 rounded-2xl max-w-md w-full shadow-2xl p-5 text-slate-900 dark:text-white max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 id="gear-item-modal-title" class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-toolbox text-orangebrand-600 dark:text-orangebrand-400"></i>
+                    <span>Eszköz Létrehozása / Karbantartás</span>
+                </h3>
+                <button onclick="closeModal('gear-item-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form onsubmit="saveGearItemForm(event)" class="space-y-3.5 text-xs overflow-y-auto custom-scrollbar pr-1 flex-1">
+                <input type="hidden" id="gear-form-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Eszköz Neve *</label>
+                        <input type="text" id="gear-form-name" required placeholder="pl. Nike Vaporfly 3, Trek Emonda..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-orangebrand-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Kategória *</label>
+                        <select id="gear-form-category" required class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-orangebrand-500 cursor-pointer"></select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Kép URL (Opcionális)</label>
+                    <input type="url" id="gear-form-image" placeholder="https://..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-orangebrand-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Leírás / Felszerelés adatok</label>
+                    <textarea id="gear-form-desc" rows="2" placeholder="Méret, vásárlás dátuma, alkatrészek..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-orangebrand-500 custom-scrollbar"></textarea>
+                </div>
+
+                <!-- Karbantartási Intervallum Csúszka (Napokban) -->
+                <div class="p-3 bg-orangebrand-50/70 dark:bg-orangebrand-950/30 rounded-2xl border border-orangebrand-200 dark:border-orangebrand-900/40 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-orangebrand-800 dark:text-orangebrand-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-wrench"></i> Karbantartási Ciklus (Naponta)
+                        </span>
+                        <span id="gear-interval-display" class="font-black text-sm text-orangebrand-600 dark:text-orangebrand-400 bg-white dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-orangebrand-300 dark:border-orangebrand-800">30 nap</span>
+                    </div>
+
+                    <input type="range" id="gear-form-interval" min="7" max="365" step="1" value="30" 
+                        oninput="document.getElementById('gear-interval-display').textContent = this.value + ' nap'"
+                        class="w-full cursor-pointer">
+                    <div class="flex justify-between text-[9px] text-slate-500">
+                        <span>1 hét (7 nap)</span>
+                        <span>1 hónap (30 nap)</span>
+                        <span>3 hónap (90 nap)</span>
+                        <span>1 év (365 nap)</span>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex justify-between items-center border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" id="gear-delete-btn" onclick="deleteCurrentGearItem()" class="px-3 py-2 rounded-xl bg-red-100 dark:bg-red-950/60 hover:bg-red-200 dark:hover:bg-red-900 border border-red-300 dark:border-red-800/50 text-red-600 dark:text-red-400 font-semibold hidden cursor-pointer">
+                        <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="deleteBtn">Törlés</span>
+                    </button>
+                    <div class="flex gap-2 ml-auto">
+                        <button type="button" onclick="closeModal('gear-item-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl text-xs font-semibold cursor-pointer" data-i18n="cancelBtn">Mégse</button>
+                        <button type="submit" class="px-5 py-2 bg-orangebrand-500 hover:bg-orangebrand-400 text-slate-950 rounded-xl text-xs font-bold shadow-lg shadow-orangebrand-500/30 cursor-pointer" data-i18n="saveBtn">Mentés</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: PR HUB - ÚJ REKORD / CSÚCSTELJESÍTMÉNY RÖGZÍTÉSE        -->
+    <!-- ============================================================== -->
+    <div id="pr-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-yellow-300 dark:border-yellow-500/30 rounded-3xl max-w-lg w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden ring-1 ring-yellow-500/20 text-slate-900 dark:text-white">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-yellow-500/10">
+                <h3 class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-yellow-500"></i>
+                    <span id="pr-modal-title">Új Rekord Rögzítése</span>
+                </h3>
+                <button type="button" onclick="closeModal('pr-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <form id="pr-form" onsubmit="savePRRecord(event)" class="p-5 space-y-4 text-xs overflow-y-auto custom-scrollbar">
+                <input type="hidden" id="pr-edit-id">
+
+                <!-- Sportág / Kategória Választó -->
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">Sportág & Kategória</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <label class="pr-sport-option flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 cursor-pointer hover:border-yellow-500 transition">
+                            <input type="radio" name="pr-sport" value="Súlyzós edzés" checked onchange="handlePRSportChange(this.value)" class="text-yellow-500 focus:ring-yellow-500">
+                            <span class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-dumbbell text-yellow-500"></i> Súlyzós</span>
+                        </label>
+                        <label class="pr-sport-option flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 cursor-pointer hover:border-yellow-500 transition">
+                            <input type="radio" name="pr-sport" value="Funkcionális tréning" onchange="handlePRSportChange(this.value)" class="text-yellow-500 focus:ring-yellow-500">
+                            <span class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-fire text-orange-500"></i> Funkcionális</span>
+                        </label>
+                        <label class="pr-sport-option flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 cursor-pointer hover:border-yellow-500 transition">
+                            <input type="radio" name="pr-sport" value="Futás" onchange="handlePRSportChange(this.value)" class="text-yellow-500 focus:ring-yellow-500">
+                            <span class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-person-running text-emerald-500"></i> Futás</span>
+                        </label>
+                        <label class="pr-sport-option flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 cursor-pointer hover:border-yellow-500 transition">
+                            <input type="radio" name="pr-sport" value="Kerékpár" onchange="handlePRSportChange(this.value)" class="text-yellow-500 focus:ring-yellow-500">
+                            <span class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-person-biking text-blue-500"></i> Kerékpár</span>
+                        </label>
+                        <label class="pr-sport-option flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 cursor-pointer hover:border-yellow-500 transition">
+                            <input type="radio" name="pr-sport" value="Úszás" onchange="handlePRSportChange(this.value)" class="text-yellow-500 focus:ring-yellow-500">
+                            <span class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-person-swimming text-cyan-500"></i> Úszás</span>
+                        </label>
+                        <label class="pr-sport-option flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 cursor-pointer hover:border-yellow-500 transition">
+                            <input type="radio" name="pr-sport" value="Evezés" onchange="handlePRSportChange(this.value)" class="text-yellow-500 focus:ring-yellow-500">
+                            <span class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-water text-indigo-500"></i> Evezés</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 1. SZEKCIÓ: ERŐSPORTOK (Súlyzós edzés, Funkcionális tréning) -->
+                <div id="pr-form-strength" class="space-y-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Gyakorlat (Workout Adatbázisból)</label>
+                        <select id="pr-strength-exercise" onchange="handlePRExerciseSelectChange()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 cursor-pointer">
+                            <!-- Dinamikusan feltöltve a workoutExercises tömbből -->
+                        </select>
+                        <input type="text" id="pr-strength-custom-exercise" placeholder="Egyedi gyakorlat neve..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 mt-2 hidden">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Súly (kg)</label>
+                            <input type="number" id="pr-weight" step="0.5" min="0" placeholder="pl. 100" oninput="calculateLivePRStrength1RM()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 font-semibold">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Ismétlésszám (db)</label>
+                            <input type="number" id="pr-reps" min="1" max="100" value="1" placeholder="pl. 5" oninput="calculateLivePRStrength1RM()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 font-semibold">
+                        </div>
+                    </div>
+
+                    <!-- Élő 1RM Előnézet Doboz -->
+                    <div class="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-yellow-500 text-sm"></i>
+                            <div>
+                                <span class="font-bold text-slate-800 dark:text-slate-200">Elméleti 1RM Maximum:</span>
+                                <span class="block text-[10px] text-slate-400">Epley-formula alapján élőben kalkulálva</span>
+                            </div>
+                        </div>
+                        <span id="pr-live-1rm-val" class="font-black text-base text-yellow-600 dark:text-yellow-400 bg-white dark:bg-slate-900 px-3 py-1 rounded-lg border border-yellow-500/40 shadow-sm">0 kg</span>
+                    </div>
+                </div>
+
+                <!-- 2. SZEKCIÓ: ÁLLÓKÉPESSÉGI SPORTOK (Futás, Kerékpár, Úszás, Evezés) -->
+                <div id="pr-form-endurance" class="space-y-3 hidden">
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Gyakorlat / Útvonal / Táv Neve</label>
+                        <input type="text" id="pr-endurance-name" placeholder="pl. 10 km aszfalt futás, 20 km egyéni időfutam..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500">
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="font-bold text-slate-700 dark:text-slate-300">Távolság (km)</label>
+                            <span class="text-[10px] text-slate-400">Gyorsgombok a gyakori távokhoz</span>
+                        </div>
+                        <input type="number" id="pr-distance" step="0.01" min="0.01" placeholder="pl. 10" oninput="calculateLivePREnduranceMetrics()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 font-semibold">
+                        
+                        <!-- Gyorsgombok a leggyakoribb távokhoz -->
+                        <div class="flex flex-wrap gap-1.5 mt-2">
+                            <button type="button" onclick="setPREnduranceDistance(1)" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-yellow-500 hover:text-slate-950 text-slate-700 dark:text-slate-300 text-[11px] font-semibold rounded-lg transition border border-slate-200 dark:border-slate-700 cursor-pointer">1 km</button>
+                            <button type="button" onclick="setPREnduranceDistance(5)" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-yellow-500 hover:text-slate-950 text-slate-700 dark:text-slate-300 text-[11px] font-semibold rounded-lg transition border border-slate-200 dark:border-slate-700 cursor-pointer">5 km</button>
+                            <button type="button" onclick="setPREnduranceDistance(10)" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-yellow-500 hover:text-slate-950 text-slate-700 dark:text-slate-300 text-[11px] font-semibold rounded-lg transition border border-slate-200 dark:border-slate-700 cursor-pointer">10 km</button>
+                            <button type="button" onclick="setPREnduranceDistance(21.1)" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-yellow-500 hover:text-slate-950 text-slate-700 dark:text-slate-300 text-[11px] font-semibold rounded-lg transition border border-slate-200 dark:border-slate-700 cursor-pointer">Félmaraton (21.1 km)</button>
+                            <button type="button" onclick="setPREnduranceDistance(42.2)" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-yellow-500 hover:text-slate-950 text-slate-700 dark:text-slate-300 text-[11px] font-semibold rounded-lg transition border border-slate-200 dark:border-slate-700 cursor-pointer">Maraton (42.2 km)</button>
+                        </div>
+                    </div>
+
+                    <!-- Időeredmény (Óra : Perc : Másodperc) -->
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Időeredmény (Óra : Perc : Másodperc)</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block mb-0.5">Óra</span>
+                                <input type="number" id="pr-time-hours" min="0" max="99" value="0" placeholder="0" oninput="calculateLivePREnduranceMetrics()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-center text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 font-semibold">
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block mb-0.5">Perc</span>
+                                <input type="number" id="pr-time-minutes" min="0" max="59" value="0" placeholder="0" oninput="calculateLivePREnduranceMetrics()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-center text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 font-semibold">
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block mb-0.5">Másodperc</span>
+                                <input type="number" id="pr-time-seconds" min="0" max="59" value="0" placeholder="0" oninput="calculateLivePREnduranceMetrics()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-center text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 font-semibold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Élő Átlagtempó & Sebesség Előnézet -->
+                    <div class="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl grid grid-cols-2 gap-3 text-center">
+                        <div class="p-2 bg-white dark:bg-slate-900 rounded-lg border border-yellow-500/20 shadow-sm">
+                            <span class="text-[10px] text-slate-400 block font-semibold">Átlagtempó</span>
+                            <span id="pr-live-pace-val" class="font-black text-sm text-yellow-600 dark:text-yellow-400">0:00 min/km</span>
+                        </div>
+                        <div class="p-2 bg-white dark:bg-slate-900 rounded-lg border border-yellow-500/20 shadow-sm">
+                            <span class="text-[10px] text-slate-400 block font-semibold">Átlagsebesség</span>
+                            <span id="pr-live-speed-val" class="font-black text-sm text-yellow-600 dark:text-yellow-400">0.00 km/h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Közös mezők: Dátum és Megjegyzés -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-200 dark:border-slate-800">
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Dátum</label>
+                        <input type="date" id="pr-date" required class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Megjegyzés (Opcionális)</label>
+                        <input type="text" id="pr-notes" placeholder="pl. Versenyeredmény, egyéni legjobb..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500">
+                    </div>
+                </div>
+
+                <!-- Modál Alsó Gombok -->
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeModal('pr-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-xs rounded-xl font-semibold hover:bg-slate-300 dark:hover:bg-slate-700 transition cursor-pointer" data-i18n="cancelBtn">Mégse</button>
+                    <button type="submit" class="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-xs rounded-xl font-bold transition shadow-lg shadow-yellow-500/30 cursor-pointer">Rekord Mentése</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: KÜLÖNÁLLÓ 1RM ELMÉLETI MAXIMUM KALKULÁTOR              -->
+    <!-- ============================================================== -->
+    <div id="pr-calc-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-yellow-300 dark:border-yellow-500/30 rounded-3xl max-w-lg w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden ring-1 ring-yellow-500/20 text-slate-900 dark:text-white">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-yellow-500/10">
+                <h3 class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-calculator text-yellow-500"></i>
+                    <span>1RM Maximum & Terhelési Zónák</span>
+                </h3>
+                <button type="button" onclick="closeModal('pr-calc-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 text-xs overflow-y-auto custom-scrollbar">
+                <p class="text-slate-500 dark:text-slate-400">
+                    Tervezési célú kalkulátor az <strong class="text-slate-800 dark:text-slate-200">Epley-formula</strong> alapján: 
+                    <span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[10px] text-yellow-600 dark:text-yellow-400 font-bold">1RM = Súly × (1 + Ism / 30)</span>.
+                </p>
+
+                <!-- Bemeneti Mezők -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Megmozgatott Súly (kg)</label>
+                        <input type="number" id="standalone-calc-weight" value="100" min="1" step="0.5" oninput="calculateStandalone1RM()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 font-bold text-sm">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Ismétlésszám (ism.)</label>
+                        <input type="number" id="standalone-calc-reps" value="5" min="1" max="30" oninput="calculateStandalone1RM()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-yellow-500 font-bold text-sm">
+                    </div>
+                </div>
+
+                <!-- 100%-os Eredmény Kártya -->
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-yellow-500/20 via-amber-500/15 to-yellow-500/10 border border-yellow-500/30 text-center shadow-inner">
+                    <span class="text-[11px] font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-wider block">100% Elméleti 1RM Maximum</span>
+                    <h3 id="calc-result-1rm" class="text-3xl sm:text-4xl font-black text-yellow-600 dark:text-yellow-400 mt-1 mb-0.5">116.7 kg</h3>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400">Az 1 ismétléses becsült maximális erőszinted</p>
+                </div>
+
+                <!-- Terhelési Zónák Táblázat -->
+                <div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center justify-between">
+                        <span>Ajánlott Terhelési Zónák & Súlyok</span>
+                        <span class="text-[10px] text-slate-400 font-normal">Különböző ismétlésszámokhoz</span>
+                    </h4>
+                    <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 dark:bg-slate-950/70 text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                                    <th class="p-2 sm:p-2.5">Cél Ismétlés</th>
+                                    <th class="p-2 sm:p-2.5 text-center">Intenzitás</th>
+                                    <th class="p-2 sm:p-2.5 text-right">Számított Súly</th>
+                                    <th class="p-2 sm:p-2.5 text-right hidden sm:table-cell">Edzéscél</th>
+                                </tr>
+                            </thead>
+                            <tbody id="calc-zones-table-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <!-- Dinamikusan kalkulált sorok -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" onclick="closeModal('pr-calc-modal')" class="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-xs rounded-xl font-bold transition shadow-lg shadow-yellow-500/30 cursor-pointer">Rendben</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ==================== 2. RÉSZ VÉGE (INDEX.HTML) ==================== -->
