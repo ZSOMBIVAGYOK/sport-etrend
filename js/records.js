@@ -1,46 +1,18 @@
 // ==============================================================
 // FitPlan Pro - Egyéni Rekordok & PR Hub (js/records.js)
-// Citromsárga téma, 1RM Kalkulátor & Állóképességi Sebességszámító
+// Javított adatvédelem, törlés és lenyíló menü integráció
 // ==============================================================
 
 window.activeRecordSportFilter = 'all';
 
-// Defenzív inicializálás a jelenlegi profilhoz
+// Defenzív rekordelérés a központi állapotból
 window.getProfileRecords = function() {
-    const profId = window.currentProfileId;
-    if (!profId) return [];
-    if (!window.profileData[profId]) window.profileData[profId] = {};
-    if (!Array.isArray(window.profileData[profId].personalRecords)) {
-        window.profileData[profId].personalRecords = [
-            // Alapértelmezett demonstrációs rekordok
-            {
-                id: 'pr-demo-1',
-                sport: 'strength_training',
-                exerciseId: 'ex-1',
-                exerciseName: 'Fekvenyomás rúddal',
-                type: 'strength',
-                weight: 100,
-                reps: 1,
-                calculated1RM: 100,
-                date: window.getTodayKey(),
-                notes: 'Első 100 kg-os fekvenyomás!'
-            },
-            {
-                id: 'pr-demo-2',
-                sport: 'running',
-                type: 'endurance',
-                title: '5 km PB',
-                distanceKm: 5.0,
-                durationSeconds: 1350, // 22:30
-                timeString: '22:30',
-                pace: '4:30 min/km',
-                speedKmh: 13.33,
-                date: window.getTodayKey(),
-                notes: 'Szigeti futás egyenletes tempóban'
-            }
-        ];
+    if (!Array.isArray(window.personalRecords)) {
+        const profId = window.currentProfileId;
+        const dat = (profId && window.profileData && window.profileData[profId]) ? window.profileData[profId] : {};
+        window.personalRecords = Array.isArray(dat.personalRecords) ? dat.personalRecords : [];
     }
-    return window.profileData[profId].personalRecords;
+    return window.personalRecords;
 };
 
 // 1RM Formula kalkulátor (Epley formula: W * (1 + r/30))
@@ -67,23 +39,21 @@ window.renderRecordsDashboard = function() {
 
     let maxStrength = 0;
     strengthRecords.forEach(r => {
-        if ((r.calculated1RM || r.weight) > maxStrength) {
-            maxStrength = r.calculated1RM || r.weight;
-        }
+        const val = Number(r.calculated1RM) || Number(r.weight) || 0;
+        if (val > maxStrength) maxStrength = val;
     });
 
     let maxSpeed = 0;
     enduranceRecords.forEach(r => {
-        if (r.speedKmh && r.speedKmh > maxSpeed) {
-            maxSpeed = r.speedKmh;
-        }
+        const val = Number(r.speedKmh) || 0;
+        if (val > maxSpeed) maxSpeed = val;
     });
 
     if (totalCountEl) totalCountEl.textContent = records.length;
     if (heavy1rmEl) heavy1rmEl.textContent = maxStrength > 0 ? `${maxStrength} kg` : '-';
     if (fastSpeedEl) fastSpeedEl.textContent = maxSpeed > 0 ? `${maxSpeed} km/h` : '-';
 
-    // Kategória szűrő gombok generálása
+    // Kategória szűrők generálása
     window.renderRecordSportFilters();
 
     // Rács kirajzolása
@@ -100,8 +70,8 @@ window.renderRecordsDashboard = function() {
         grid.innerHTML = `
             <div class="col-span-full text-center py-12 text-slate-400">
                 <i class="fa-solid fa-trophy text-4xl mb-3 text-yellow-400/40 block"></i>
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">Ebben a kategóriában még nincsenek rögzített egyéni rekordjaid.</p>
-                <p class="text-xs text-slate-500 mt-1">Kattints a fenti „Új Rekord” gombra és rögzítsd a csúcsodat!</p>
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nincsenek rögzített egyéni rekordok ebben a kategóriában.</p>
+                <p class="text-xs text-slate-500 mt-1">Kattints a fenti „Új Rekord” gombra a rögzítéshez!</p>
             </div>
         `;
         return;
@@ -113,11 +83,10 @@ window.renderRecordsDashboard = function() {
             : { name: rec.sport, icon: 'fa-trophy', color: 'bg-yellow-500 text-slate-950' };
 
         const card = document.createElement('div');
-        card.className = "bg-white dark:bg-slate-900 border border-yellow-300/60 dark:border-yellow-500/30 hover:border-yellow-400 rounded-3xl p-5 shadow-sm hover:shadow-yellow-500/10 transition flex flex-col justify-between relative overflow-hidden group";
+        card.className = "bg-white dark:bg-slate-900 border border-yellow-300/60 dark:border-yellow-500/30 hover:border-yellow-400 rounded-3xl p-5 shadow-sm transition flex flex-col justify-between";
 
         let metricContent = '';
         if (rec.type === 'strength') {
-            const is1RM = rec.reps === 1;
             metricContent = `
                 <div class="bg-yellow-50 dark:bg-yellow-950/30 p-3.5 rounded-2xl border border-yellow-200 dark:border-yellow-800/40 my-3">
                     <div class="flex items-baseline justify-between">
@@ -150,12 +119,12 @@ window.renderRecordsDashboard = function() {
         card.innerHTML = `
             <div>
                 <div class="flex items-center justify-between mb-2">
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-yellow-400 text-slate-950 flex items-center gap-1 shadow-xs">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-yellow-400 text-slate-950 flex items-center gap-1">
                         <i class="fa-solid ${badge.icon} text-[9px]"></i> ${badge.name}
                     </span>
                     <div class="flex items-center gap-1">
                         <span class="text-[10px] text-slate-400 font-medium">${rec.date}</span>
-                        <button onclick="deleteRecordItem('${rec.id}')" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer ml-1" title="Törlés">
+                        <button type="button" onclick="deleteRecordItem('${rec.id}')" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer ml-1" title="Törlés">
                             <i class="fa-solid fa-trash-can text-xs"></i>
                         </button>
                     </div>
@@ -210,10 +179,9 @@ window.renderRecordSportFilters = function() {
 };
 
 // ==============================================================
-// 2. REKORD LÉTREHOZÁSA (SÚLYZÓS VAGY ÁLLÓKÉPESSÉGI ÁG)
+// 2. REKORD LÉTREHOZÁSA (TETSZŐLEGES SZÁMÚ HOZZÁADÁS)
 // ==============================================================
 window.openAddRecordModal = function() {
-    // Gyakorlatok feltöltése
     const exSelect = document.getElementById('pr-exercise-select');
     if (exSelect) {
         exSelect.innerHTML = '<option value="">-- Válassz gyakorlatot --</option>';
@@ -284,7 +252,6 @@ window.recalcModalSpeedAndPace = function() {
     const paceM = Math.floor(secPerKm / 60);
     const paceS = String(secPerKm % 60).padStart(2, '0');
     const paceStr = `${paceM}:${paceS} min/km`;
-
     const speedKmh = ((distKm / totalSeconds) * 3600).toFixed(2);
 
     if (paceDisplay) paceDisplay.textContent = paceStr;
@@ -314,7 +281,7 @@ window.saveRecordForm = function(e) {
         const calculated1RM = window.calculate1RM(weight, reps);
 
         newRecord = {
-            id: 'pr-' + Date.now(),
+            id: 'pr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
             sport: sportKey,
             type: 'strength',
             exerciseId: exId,
@@ -338,7 +305,7 @@ window.saveRecordForm = function(e) {
         const timeStr = `${h > 0 ? h + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
         newRecord = {
-            id: 'pr-' + Date.now(),
+            id: 'pr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
             sport: sportKey,
             type: 'endurance',
             title: `${distKm} km Egyéni Csúcs`,
@@ -352,28 +319,35 @@ window.saveRecordForm = function(e) {
         };
     }
 
-    const records = window.getProfileRecords();
-    records.unshift(newRecord);
+    if (!Array.isArray(window.personalRecords)) {
+        window.personalRecords = [];
+    }
+    window.personalRecords.unshift(newRecord);
 
     window.saveData();
     window.closeModal('record-add-modal');
     window.renderRecordsDashboard();
-    window.showToast("🏆 Új Egyéni Rekord rögzítve! Gratulálunk!", "fa-trophy", "yellow");
+    window.showToast("🏆 Új Egyéni Rekord mentve!", "fa-trophy", "yellow");
 };
 
+// ==============================================================
+// 3. REKORD TÖRLÉSE (VÉGLEGES, NEM JÖN VISSZA)
+// ==============================================================
 window.deleteRecordItem = function(recId) {
-    window.customConfirm(window.t('confirmTitle'), "Biztosan törlöd ezt az egyéni rekordot?", () => {
-        const records = window.getProfileRecords();
-        const profId = window.currentProfileId;
-        window.profileData[profId].personalRecords = records.filter(r => r.id !== recId);
+    window.customConfirm("Megerősítés", "Biztosan törlöd ezt az egyéni rekordot?", () => {
+        if (!Array.isArray(window.personalRecords)) {
+            window.personalRecords = window.getProfileRecords();
+        }
+        window.personalRecords = window.personalRecords.filter(r => String(r.id) !== String(recId));
+
         window.saveData();
         window.renderRecordsDashboard();
-        window.showToast("Rekord törölve", "fa-trash", "red");
+        window.showToast("Rekord sikeresen törölve!", "fa-trash", "red");
     });
 };
 
 // ==============================================================
-// 3. GYORS 1RM SZÁMOLÓ MODAL SEGÉD
+// 4. KÜLÖNÁLLÓ 1RM SZÁMOLÓ MODAL SEGÉD
 // ==============================================================
 window.openOneRepMaxCalcModal = function() {
     document.getElementById('standalone-calc-weight').value = 100;
@@ -419,14 +393,18 @@ window.updateStandalone1RMTable = function() {
     });
 };
 
-// Bekötés az alkalmazás módváltóba
-const originalSwitchAppMode = window.switchAppMode;
+// ==============================================================
+// 5. TISZTA MENÜVEZÉRLÉS (CSAK A LENYÍLÓBÓL ÉRHETŐ EL)
+// ==============================================================
+const baseSwitchAppMode = window.switchAppMode;
 window.switchAppMode = function(mode) {
+    const dd = document.getElementById('app-selector-dropdown');
+    if (dd) dd.classList.add('hidden');
+
     if (mode === 'records') {
         window.currentAppMode = 'records';
-        const dd = document.getElementById('app-selector-dropdown');
-        if (dd) dd.classList.add('hidden');
 
+        // Minden más navigáció és nézet elrejtése
         ['diet', 'workout', 'recovery', 'gear', 'docs'].forEach(m => {
             const nav = document.getElementById(`${m}-nav`);
             const act = document.getElementById(`${m}-actions`);
@@ -434,11 +412,6 @@ window.switchAppMode = function(mode) {
             if (act) act.classList.add('hidden');
         });
 
-        // Rekordok gombok mutatása
-        const recAct = document.getElementById('records-actions');
-        if (recAct) recAct.classList.remove('hidden');
-
-        // Minden más nézet elrejtése
         ['tab-planner', 'tab-month-diet', 'tab-library', 'tab-workout-planner', 
          'tab-month-workout', 'tab-workout-programs', 'tab-workout-exercises', 
          'tab-recovery-planner', 'tab-month-recovery', 'tab-recovery-routines', 
@@ -450,7 +423,7 @@ window.switchAppMode = function(mode) {
         const tabRecords = document.getElementById('tab-records');
         if (tabRecords) tabRecords.classList.remove('hidden');
 
-        // Fejléc arculat citromsárgára
+        // Csak a PR Hubban változik a logó citromsárgára és kupára
         const logoBg = document.getElementById('app-logo-bg');
         const logoIcon = document.getElementById('app-logo-icon');
         const title = document.getElementById('app-title');
@@ -458,19 +431,18 @@ window.switchAppMode = function(mode) {
 
         if (logoBg) logoBg.className = "w-10 h-10 rounded-xl bg-gradient-to-tr from-yellow-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-yellow-400/25 transition-all duration-300";
         if (logoIcon) logoIcon.className = "fa-solid fa-trophy text-slate-950";
-        if (title) title.textContent = "PR & Rekordok";
-        if (sub) { sub.textContent = "Egyéni Csúcsok & 1RM Hub"; sub.className = "text-xs text-yellow-600 dark:text-yellow-400 font-medium transition-colors"; }
+        if (title) title.textContent = "PR Hub";
+        if (sub) { sub.textContent = "Egyéni Rekordok & 1RM"; sub.className = "text-xs text-yellow-600 dark:text-yellow-400 font-medium transition-colors"; }
 
         window.renderRecordsDashboard();
         return;
     }
 
-    const recAct = document.getElementById('records-actions');
-    if (recAct) recAct.classList.add('hidden');
+    // Ha bármelyik másik modulra váltunk, a PR Hub nézetet azonnal elrejtjük
     const tabRecords = document.getElementById('tab-records');
     if (tabRecords) tabRecords.classList.add('hidden');
 
-    if (typeof originalSwitchAppMode === 'function') {
-        originalSwitchAppMode(mode);
+    if (typeof baseSwitchAppMode === 'function') {
+        baseSwitchAppMode(mode);
     }
 };
