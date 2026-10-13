@@ -135,6 +135,15 @@
                             </div>
                         </div>
                     </div>
+                    <div onclick="switchAppMode('records')" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer flex items-center gap-3 transition">
+    <div class="w-8 h-8 rounded-lg bg-yellow-400/15 flex items-center justify-center text-yellow-600 dark:text-yellow-400 text-sm">
+        <i class="fa-solid fa-trophy"></i>
+    </div>
+    <div>
+        <strong class="text-xs font-bold block text-slate-900 dark:text-white">PR Hub & Rekordok</strong>
+        <span class="text-[10px] text-slate-400">1RM kalkulátor és egyéni csúcsok</span>
+    </div>
+</div>
                 </div>
 
                 <!-- KÖZÉP: DINAMIKUS AL-NAVIGÁCIÓS FÜLEK -->
@@ -769,6 +778,163 @@
             <div id="docs-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
         </div>
 
+        <!-- ========================================== -->
+<!-- PR HUB & EGYÉNI REKORDOK VIEW             -->
+<!-- ========================================== -->
+<div id="tab-records" class="hidden space-y-6">
+    <div class="bg-white dark:bg-slate-900 border border-yellow-300/80 dark:border-yellow-500/30 p-5 rounded-3xl shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-yellow-400 to-amber-300 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shadow-yellow-400/25">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-black text-slate-900 dark:text-white">Egyéni Rekordok & PR Hub</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Erőemelő maximumok, 1RM számítások és futó csúcsok nyilvántartása</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openOneRepMaxCalcModal()" class="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer">
+                    <i class="fa-solid fa-calculator text-yellow-500"></i> 1RM Kalkulátor
+                </button>
+                <button onclick="openAddRecordModal()" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-yellow-400/25 transition cursor-pointer">
+                    <i class="fa-solid fa-plus"></i> Új Rekord
+                </button>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            <div class="p-3 bg-yellow-50/70 dark:bg-yellow-950/20 rounded-2xl border border-yellow-200 dark:border-yellow-800/40 text-center">
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Összes Rögzített Rekord</span>
+                <span id="pr-stat-total-count" class="text-2xl font-black text-slate-900 dark:text-white block mt-0.5">0</span>
+            </div>
+            <div class="p-3 bg-yellow-50/70 dark:bg-yellow-950/20 rounded-2xl border border-yellow-200 dark:border-yellow-800/40 text-center">
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Legnagyobb 1RM Súly</span>
+                <span id="pr-stat-max-weight" class="text-2xl font-black text-yellow-500 dark:text-yellow-400 block mt-0.5">-</span>
+            </div>
+            <div class="p-3 bg-yellow-50/70 dark:bg-yellow-950/20 rounded-2xl border border-yellow-200 dark:border-yellow-800/40 text-center">
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Csúcs Sebesség</span>
+                <span id="pr-stat-top-speed" class="text-2xl font-black text-slate-900 dark:text-white block mt-0.5">-</span>
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-2" id="pr-sport-filters"></div>
+    <div id="records-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+</div>
+
+<!-- MODAL: ÚJ REKORD RÖGZÍTÉSE -->
+<div id="record-add-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white dark:bg-slate-900 border border-yellow-400 dark:border-yellow-500/40 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl my-auto text-slate-900 dark:text-white">
+        <div class="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 class="font-bold text-base flex items-center gap-2">
+                <i class="fa-solid fa-trophy text-yellow-500"></i> Új Egyéni Rekord
+            </h3>
+            <button onclick="closeModal('record-add-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form onsubmit="saveRecordForm(event)" class="space-y-4 text-xs">
+            <div>
+                <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Sportág Kiválasztása</label>
+                <select id="pr-sport-select" onchange="handlePrSportSwitch(this.value)" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-bold cursor-pointer">
+                    <option value="strength_training">🏋️ Súlyzós Edzés (Erőemelés / Kondi)</option>
+                    <option value="functional_training">⚡ Funkcionális Tréning</option>
+                    <option value="running">🏃 Futás</option>
+                    <option value="trail_running">🌲 Terepfutás</option>
+                    <option value="cycling">🚴 Kerékpározás</option>
+                    <option value="pool_swimming">🏊 Úszás</option>
+                    <option value="rowing">🚣 Evezés</option>
+                    <option value="other">🎯 Egyéb Sportág</option>
+                </select>
+            </div>
+
+            <!-- SÚLYZÓS ÁG -->
+            <div id="pr-strength-section" class="space-y-3 p-3.5 bg-yellow-50/50 dark:bg-yellow-950/20 border border-yellow-300/40 rounded-2xl">
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Gyakorlat a könyvtárból *</label>
+                    <select id="pr-exercise-select" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white cursor-pointer"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Elért Súly (kg) *</label>
+                        <input type="number" step="0.5" id="pr-weight-input" value="100" oninput="recalcModal1RM()" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-black text-center text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Ismétlések száma *</label>
+                        <input type="number" min="1" max="50" id="pr-reps-input" value="1" oninput="recalcModal1RM()" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-black text-center text-sm">
+                    </div>
+                </div>
+                <div class="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-yellow-300/60 dark:border-yellow-800/50 flex items-center justify-between">
+                    <span class="text-[11px] text-slate-500 font-medium">Számított elméleti 1RM max:</span>
+                    <span id="pr-calc-1rm-display" class="font-black text-sm text-yellow-600 dark:text-yellow-400">100 kg</span>
+                </div>
+            </div>
+
+            <!-- ÁLLÓKÉPESSÉGI ÁG -->
+            <div id="pr-endurance-section" class="hidden space-y-3 p-3.5 bg-yellow-50/50 dark:bg-yellow-950/20 border border-yellow-300/40 rounded-2xl">
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Távolság (km) *</label>
+                    <input type="number" step="0.01" id="pr-dist-input" value="5.0" oninput="recalcModalSpeedAndPace()" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-bold text-center">
+                    <div class="flex flex-wrap gap-1 mt-1.5 justify-center">
+                        <button type="button" onclick="setPrQuickDistance(1.0)" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-bold">1 km</button>
+                        <button type="button" onclick="setPrQuickDistance(5.0)" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-bold">5 km</button>
+                        <button type="button" onclick="setPrQuickDistance(10.0)" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-bold">10 km</button>
+                        <button type="button" onclick="setPrQuickDistance(21.1)" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-bold">21.1 km</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Időeredmény (Óra : Perc : Msp)</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="number" id="pr-time-hours" min="0" value="0" placeholder="Óra" oninput="recalcModalSpeedAndPace()" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-2 py-2 text-center font-bold">
+                        <input type="number" id="pr-time-minutes" min="0" max="59" value="25" placeholder="Perc" oninput="recalcModalSpeedAndPace()" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-2 py-2 text-center font-bold">
+                        <input type="number" id="pr-time-seconds" min="0" max="59" value="0" placeholder="Msp" oninput="recalcModalSpeedAndPace()" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-2 py-2 text-center font-bold">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-yellow-300/60 dark:border-yellow-800/50 text-center">
+                    <div><span class="text-[9px] text-slate-400 font-bold block uppercase">Átlagtempó</span><span id="pr-calc-pace-display" class="font-black text-xs text-yellow-600 dark:text-yellow-400">5:00 min/km</span></div>
+                    <div><span class="text-[9px] text-slate-400 font-bold block uppercase">Átlagsebesség</span><span id="pr-calc-speed-display" class="font-black text-xs text-slate-900 dark:text-white">12.00 km/h</span></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Dátum</label>
+                    <input type="date" id="pr-date-input" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Megjegyzés</label>
+                    <input type="text" id="pr-notes-input" placeholder="pl. Verseny..." class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white">
+                </div>
+            </div>
+            <div class="pt-3 flex justify-end gap-2 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" onclick="closeModal('record-add-modal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 rounded-xl cursor-pointer">Mégse</button>
+                <button type="submit" class="px-5 py-2 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold rounded-xl shadow-lg shadow-yellow-400/30 cursor-pointer">Mentés</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: KÜLÖNÁLLÓ 1RM KALKULÁTOR -->
+<div id="onerep-calc-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-yellow-400 dark:border-yellow-500/40 rounded-3xl max-w-sm w-full p-5 shadow-2xl text-slate-900 dark:text-white space-y-4">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-calculator text-yellow-500"></i> 1RM Maximális Súly Számító</h3>
+            <button onclick="closeModal('onerep-calc-modal')" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-[10px] text-slate-400 font-bold uppercase mb-1">Súly (kg)</label><input type="number" id="standalone-calc-weight" value="100" oninput="updateStandalone1RMTable()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-2.5 py-1.5 font-black text-center text-sm"></div>
+            <div><label class="block text-[10px] text-slate-400 font-bold uppercase mb-1">Ismétlés</label><input type="number" id="standalone-calc-reps" value="5" min="1" max="30" oninput="updateStandalone1RMTable()" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-2.5 py-1.5 font-black text-center text-sm"></div>
+        </div>
+        <div class="p-3 bg-yellow-50 dark:bg-yellow-950/30 rounded-2xl border border-yellow-300/50 text-center">
+            <span class="text-[10px] uppercase font-bold text-slate-500 block">Becsült 1RM Maximum:</span>
+            <span id="standalone-1rm-banner" class="text-3xl font-black text-yellow-500 dark:text-yellow-400">117 kg</span>
+        </div>
+        <div class="max-h-48 overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left">
+                <thead><tr class="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase text-slate-400"><th class="py-1">Cél</th><th class="py-1">Százalék</th><th class="py-1 text-right">Súly</th></tr></thead>
+                <tbody id="standalone-1rm-table-body"></tbody>
+            </table>
+        </div>
+        <button onclick="closeModal('onerep-calc-modal')" class="w-full py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-xs font-bold cursor-pointer">Bezárás</button>
+    </div>
+</div>
     </main>
     <!-- ==================== 1. RÉSZ VÉGE (INDEX.HTML) ==================== -->
 <!-- ============================================================== -->
@@ -2321,6 +2487,7 @@
     <script src="js/workout.js"></script>
     <script src="js/recovery.js"></script>
     <script src="js/gear.js"></script>
+    <script src="js/records.js"></script>
     <script type="module" src="js/firebase.js"></script>
 </body>
 </html>
