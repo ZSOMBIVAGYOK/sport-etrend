@@ -2358,6 +2358,19 @@ if (typeof window.switchAppMode !== 'function') {
             });
             const tabRecords = document.getElementById('tab-records');
             if (tabRecords) tabRecords.classList.remove('hidden');
+
+            // Fejléc cseréje sárga kupa ikonra
+            const logoBg = document.getElementById('app-logo-bg');
+            const logoIcon = document.getElementById('app-logo-icon');
+            const title = document.getElementById('app-title');
+            const sub = document.getElementById('app-subtitle');
+
+            if (logoBg) logoBg.className = "w-10 h-10 rounded-xl bg-gradient-to-tr from-yellow-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-yellow-400/25 transition-all duration-300";
+            if (logoIcon) logoIcon.className = "fa-solid fa-trophy text-slate-950";
+            if (title) title.textContent = "PR Hub";
+            if (sub) { sub.textContent = "Egyéni Rekordok & 1RM"; sub.className = "text-xs text-yellow-600 dark:text-yellow-400 font-medium transition-colors"; }
+
+            if (typeof window.renderRecordsDashboard === 'function') window.renderRecordsDashboard();
         }
     };
 }
