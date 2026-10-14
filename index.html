@@ -779,14 +779,37 @@
             <div id="docs-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
         </div>
 
-        <div id="tab-records" class="hidden space-y-6">
-    <div class="bg-white dark:bg-slate-900 border border-yellow-300/80 dark:border-yellow-500/30 p-8 rounded-3xl text-center space-y-3">
-        <div class="w-12 h-12 rounded-2xl bg-yellow-400 text-slate-950 text-2xl font-black mx-auto flex items-center justify-center shadow-lg shadow-yellow-400/25">
-            <i class="fa-solid fa-trophy"></i>
+        <!-- PR HUB & EGYÉNI REKORDOK VIEW -->
+<div id="tab-records" class="hidden space-y-6">
+    <div class="bg-white dark:bg-slate-900 border border-yellow-300/80 dark:border-yellow-500/30 p-5 rounded-3xl shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-yellow-400 to-amber-300 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shadow-yellow-400/25">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-black text-slate-900 dark:text-white">Egyéni Rekordok & PR Hub</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Erőemelő maximumok, 1RM számítások és futó csúcsok nyilvántartása</p>
+                </div>
+            </div>
         </div>
-        <h2 class="text-lg font-black text-slate-900 dark:text-white">PR Hub – 1. Mikrolépés Aktív</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">A menüpont és az üres nézet sikeresen csatlakoztatva. Jöhet a tesztelés!</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            <div class="p-3 bg-yellow-50/70 dark:bg-yellow-950/20 rounded-2xl border border-yellow-200 dark:border-yellow-800/40 text-center">
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Összes Rögzített Rekord</span>
+                <span id="pr-stat-total-count" class="text-2xl font-black text-slate-900 dark:text-white block mt-0.5">0</span>
+            </div>
+            <div class="p-3 bg-yellow-50/70 dark:bg-yellow-950/20 rounded-2xl border border-yellow-200 dark:border-yellow-800/40 text-center">
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Legnagyobb 1RM Súly</span>
+                <span id="pr-stat-max-weight" class="text-2xl font-black text-yellow-500 dark:text-yellow-400 block mt-0.5">-</span>
+            </div>
+            <div class="p-3 bg-yellow-50/70 dark:bg-yellow-950/20 rounded-2xl border border-yellow-200 dark:border-yellow-800/40 text-center">
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Csúcs Sebesség</span>
+                <span id="pr-stat-top-speed" class="text-2xl font-black text-slate-900 dark:text-white block mt-0.5">-</span>
+            </div>
+        </div>
     </div>
+    <div class="flex flex-wrap items-center gap-2" id="pr-sport-filters"></div>
+    <div id="records-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
 </div>
         
     </main>
