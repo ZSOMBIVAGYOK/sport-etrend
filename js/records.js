@@ -59,3 +59,12 @@ window.renderRecordsDashboard = function() {
         grid.appendChild(card);
     });
 };
+window.openRecordModal = function() {
+    const modal = document.getElementById('record-modal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeRecordModal = function() {
+    const modal = document.getElementById('record-modal');
+    if (modal) modal.classList.add('hidden');
+};
